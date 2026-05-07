@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/**)",
+      "Bash(npx tsx *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/api/manual/articles -H \"Cookie: __Secure-next-auth.session-token=test\")",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/admin/dashboard/[id]\")",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/dashboard/widgets/[id]/data\")",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/admin/tools/[id]\")",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/tools/[slug]\")",
+      "Bash(curl -s http://localhost:3000/api/tools/gestao-de-turnos)",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/announcements/[id]/react\")",
+      "Bash(mkdir -p \"c:/VoltoDrive Apps/smartvolto portal/src/app/api/announcements/[id]/comments\")",
+      "Bash(xargs grep *)",
+      "Bash(node -e 'const {PrismaClient} = require\\('\\\\''@prisma/client'\\\\''\\); const p = new PrismaClient\\(\\); p.docArea.findMany\\(\\).then\\(r => console.log\\('\\\\''OK'\\\\'', r.length\\)\\).catch\\(e => console.error\\('\\\\''ERR'\\\\'', e.message\\)\\).finally\\(\\(\\) => p.$disconnect\\(\\)\\)')",
+      "Bash(curl -s -o /tmp/resp.json -w \"%{http_code}\" http://localhost:3000/api/admin/docs/areas)",
+      "Bash(node -e ' *)",
+      "PowerShell(head -20)"
+    ],
+    "additionalDirectories": [
+      "c:\\VoltoDrive Apps\\smartvolto portal\\src\\app\\api\\tools\\[slug]",
+      "c:\\VoltoDrive Apps\\smartvolto portal\\src\\app\\api\\admin\\announcement-categories",
+      "c:\\VoltoDrive Apps\\smartvolto portal\\claude design\\shared",
+      "c:\\VoltoDrive Apps\\smartvolto portal\\claude design\\shared\\fonts"
+    ]
+  }
+}

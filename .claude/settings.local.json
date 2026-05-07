@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --skip-install)",
+      "Bash(cp \"C:/xampp/mysql/backup/mysql/db.MAD\" \"C:/xampp/mysql/data/mysql/db.MAD\")",
+      "Bash(cp \"C:/xampp/mysql/backup/mysql/db.MAI\" \"C:/xampp/mysql/data/mysql/db.MAI\")",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npm list *)",
+      "Bash(npm search *)",
+      "Bash(npm view *)",
+      "Bash(node -e \"const { PrismaMariaDb } = require\\('@prisma/adapter-mariadb'\\); console.log\\(PrismaMariaDb.toString\\(\\).slice\\(0,300\\)\\)\")",
+      "Bash(grep -E '\\\\.\\(tsx|ts\\)$')",
+      "Bash(node scripts/check-admin.mjs)",
+      "Bash(curl -X POST http://localhost:3000/api/admin/seed-manual)",
+      "PowerShell(Get-Process node)",
+      "PowerShell(Stop-Process -Force -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

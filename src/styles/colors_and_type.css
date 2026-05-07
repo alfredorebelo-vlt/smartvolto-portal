@@ -1,0 +1,319 @@
+/* ============================================================
+   VOLTO DRIVE — Design Tokens
+   colors_and_type.css
+   Source: Volto Drive Brandbook V2 (assets/brandbook.pdf)
+   ============================================================ */
+
+/* --- Webfonts --------------------------------------------------
+   Body / UI: Raleway — local TTF files in /fonts/, full weight range.
+   Display / Headings: Meedori Sans Bold (brandbook).
+     Meedori Sans is a paid foundry face — still NOT supplied.
+     Substitute used here: "Sora" (Google Fonts) — a contemporary
+     geometric sans with a similar clean-line feel. FLAG: please
+     supply Meedori Sans .otf/.ttf to replace.
+   --------------------------------------------------------------- */
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 100; font-display: swap; src: url("/fonts/Raleway-Thin.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 100; font-display: swap; src: url("/fonts/Raleway-ThinItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 200; font-display: swap; src: url("/fonts/Raleway-ExtraLight.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 200; font-display: swap; src: url("/fonts/Raleway-ExtraLightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 300; font-display: swap; src: url("/fonts/Raleway-Light.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 300; font-display: swap; src: url("/fonts/Raleway-LightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/Raleway-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 400; font-display: swap; src: url("/fonts/Raleway-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/Raleway-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 500; font-display: swap; src: url("/fonts/Raleway-MediumItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/Raleway-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 600; font-display: swap; src: url("/fonts/Raleway-SemiBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/Raleway-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 700; font-display: swap; src: url("/fonts/Raleway-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 800; font-display: swap; src: url("/fonts/Raleway-ExtraBold.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 800; font-display: swap; src: url("/fonts/Raleway-ExtraBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: normal; font-weight: 900; font-display: swap; src: url("/fonts/Raleway-Black.ttf") format("truetype"); }
+@font-face { font-family: "Raleway"; font-style: italic; font-weight: 900; font-display: swap; src: url("/fonts/Raleway-BlackItalic.ttf") format("truetype"); }
+
+:root {
+  /* ----------------------------------------------------------
+     COLOR — Brand palette (brandbook §02 / Cor)
+     ---------------------------------------------------------- */
+  --vd-blue:        #2E3C8F;   /* Azul — primary, trust / tech */
+  --vd-yellow:      #FFC429;   /* Amarelo — energy / optimism */
+  --vd-orange:      #F29220;   /* Laranja — movement / modern */
+  --vd-white:       #FFFFFF;
+  --vd-black:       #231F20;   /* Brandbook "preto" — soft black */
+
+  /* Brand gradient used in the "O" of the logo */
+  --vd-gradient-o:  linear-gradient(135deg, var(--vd-yellow) 0%, var(--vd-orange) 100%);
+  --vd-gradient-warm: linear-gradient(90deg, #FFC429 0%, #F29220 100%);
+  --vd-gradient-warm-soft: linear-gradient(135deg, #FFD86B 0%, #F29220 100%);
+
+  /* ----------------------------------------------------------
+     COLOR — Extended scale (derived from the three base hues)
+     Usage: tints/shades for surfaces, hovers, borders.
+     ---------------------------------------------------------- */
+  --vd-blue-50:     #EEF0FA;
+  --vd-blue-100:    #D6DAEE;
+  --vd-blue-200:    #ADB5DD;
+  --vd-blue-300:    #8390CB;
+  --vd-blue-400:    #5A6BBA;
+  --vd-blue-500:    #2E3C8F;   /* base */
+  --vd-blue-600:    #283479;
+  --vd-blue-700:    #212B63;
+  --vd-blue-800:    #1A224D;
+  --vd-blue-900:    #131836;
+
+  --vd-yellow-50:   #FFF8E2;
+  --vd-yellow-100:  #FFEEB3;
+  --vd-yellow-300:  #FFD96B;
+  --vd-yellow-500:  #FFC429;   /* base */
+  --vd-yellow-700:  #D9A41E;
+
+  --vd-orange-50:   #FDEFDC;
+  --vd-orange-100:  #FBDBB0;
+  --vd-orange-300:  #F6B664;
+  --vd-orange-500:  #F29220;   /* base */
+  --vd-orange-700:  #C9761A;
+
+  /* Neutrals (grayscale built around the brand "preto" #231F20) */
+  --vd-ink-0:       #FFFFFF;
+  --vd-ink-50:      #F7F7F8;
+  --vd-ink-100:     #EEEEF0;
+  --vd-ink-200:     #DDDDE1;
+  --vd-ink-300:     #BFC0C6;
+  --vd-ink-400:     #8A8B92;
+  --vd-ink-500:     #5C5D64;
+  --vd-ink-600:     #3F3F45;
+  --vd-ink-700:     #2C2A2E;
+  --vd-ink-800:     #231F20;   /* base */
+  --vd-ink-900:     #15131A;
+
+  /* ----------------------------------------------------------
+     COLOR — Semantic tokens (light theme = default)
+     ---------------------------------------------------------- */
+  --vd-bg:          var(--vd-white);
+  --vd-bg-muted:    var(--vd-ink-50);
+  --vd-bg-elevated: var(--vd-white);
+  --vd-bg-inverse:  var(--vd-blue-500);
+
+  --vd-fg:          var(--vd-ink-800);   /* primary text */
+  --vd-fg-muted:    var(--vd-ink-500);   /* secondary text */
+  --vd-fg-subtle:   var(--vd-ink-400);   /* tertiary text */
+  --vd-fg-on-blue:  var(--vd-white);
+  --vd-fg-on-yellow:var(--vd-blue-500);
+  --vd-fg-on-orange:var(--vd-white);
+
+  --vd-accent:      var(--vd-blue-500);
+  --vd-accent-fg:   var(--vd-white);
+  --vd-accent-hover:var(--vd-blue-600);
+
+  --vd-spark:       var(--vd-yellow-500); /* the "O" highlight */
+  --vd-warm:        var(--vd-orange-500);
+
+  --vd-border:      var(--vd-ink-200);
+  --vd-border-strong: var(--vd-ink-300);
+  --vd-divider:     var(--vd-ink-100);
+
+  --vd-success:     #1F9D55;
+  --vd-warning:     var(--vd-orange-500);
+  --vd-danger:      #D7263D;
+  --vd-info:        var(--vd-blue-500);
+
+  --vd-focus-ring:  0 0 0 3px rgba(46, 60, 143, 0.35);
+
+  /* ----------------------------------------------------------
+     TYPE — Families
+     ---------------------------------------------------------- */
+  --vd-font-display: "Sora", "Meedori Sans", "Inter", system-ui, sans-serif;
+  --vd-font-body:    "Raleway", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --vd-font-mono:    ui-monospace, "SFMono-Regular", "Menlo", monospace;
+
+  /* TYPE — Weights */
+  --vd-w-regular: 400;
+  --vd-w-medium:  500;
+  --vd-w-semi:    600;
+  --vd-w-bold:    700;
+  --vd-w-black:   800;
+
+  /* TYPE — Scale (modular, ~1.25 minor third) */
+  --vd-fs-12: 0.75rem;
+  --vd-fs-14: 0.875rem;
+  --vd-fs-16: 1rem;
+  --vd-fs-18: 1.125rem;
+  --vd-fs-20: 1.25rem;
+  --vd-fs-24: 1.5rem;
+  --vd-fs-30: 1.875rem;
+  --vd-fs-36: 2.25rem;
+  --vd-fs-48: 3rem;
+  --vd-fs-60: 3.75rem;
+  --vd-fs-72: 4.5rem;
+  --vd-fs-96: 6rem;
+
+  /* TYPE — Line heights */
+  --vd-lh-tight:   1.05;
+  --vd-lh-snug:    1.2;
+  --vd-lh-normal:  1.5;
+  --vd-lh-relaxed: 1.65;
+
+  /* TYPE — Letter spacing
+     Display in the brandbook is set tight, often UPPERCASE wordmark style. */
+  --vd-tr-tight:   -0.02em;
+  --vd-tr-normal:  0;
+  --vd-tr-wide:    0.02em;
+  --vd-tr-wider:   0.08em;   /* used for ALL-CAPS labels/eyebrows */
+
+  /* ----------------------------------------------------------
+     SPACING — 4px base
+     ---------------------------------------------------------- */
+  --vd-s-0:  0;
+  --vd-s-1:  4px;
+  --vd-s-2:  8px;
+  --vd-s-3:  12px;
+  --vd-s-4:  16px;
+  --vd-s-5:  20px;
+  --vd-s-6:  24px;
+  --vd-s-8:  32px;
+  --vd-s-10: 40px;
+  --vd-s-12: 48px;
+  --vd-s-16: 64px;
+  --vd-s-20: 80px;
+  --vd-s-24: 96px;
+  --vd-s-32: 128px;
+
+  /* ----------------------------------------------------------
+     RADIUS — Soft, geometric. Pills for primary CTAs.
+     ---------------------------------------------------------- */
+  --vd-r-none: 0;
+  --vd-r-xs:   4px;
+  --vd-r-sm:   8px;
+  --vd-r-md:   12px;
+  --vd-r-lg:   16px;
+  --vd-r-xl:   24px;
+  --vd-r-2xl:  32px;
+  --vd-r-pill: 999px;
+
+  /* ----------------------------------------------------------
+     SHADOWS — Subtle elevation; brand uses flat surfaces, light shadows.
+     ---------------------------------------------------------- */
+  --vd-shadow-xs: 0 1px 2px rgba(35, 31, 32, 0.06);
+  --vd-shadow-sm: 0 2px 6px rgba(35, 31, 32, 0.08);
+  --vd-shadow-md: 0 8px 20px rgba(35, 31, 32, 0.10);
+  --vd-shadow-lg: 0 16px 40px rgba(35, 31, 32, 0.14);
+  --vd-shadow-blue: 0 12px 28px rgba(46, 60, 143, 0.25);
+  --vd-shadow-warm:0 12px 28px rgba(242, 146, 32, 0.30);
+
+  /* MOTION */
+  --vd-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --vd-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --vd-dur-fast: 120ms;
+  --vd-dur-base: 200ms;
+  --vd-dur-slow: 400ms;
+}
+
+/* ==============================================================
+   SEMANTIC ELEMENT STYLES
+   ============================================================== */
+
+html, body {
+  font-family: var(--vd-font-body);
+  font-size: 16px;
+  line-height: var(--vd-lh-normal);
+  color: var(--vd-fg);
+  background: var(--vd-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* --- Display / Headings ----
+   Display uses Meedori-Sans-substitute (Sora). Brandbook shows
+   "Título" set in the heavy display face, often uppercase.
+*/
+.vd-display,
+h1, h2, h3, .vd-h1, .vd-h2, .vd-h3 {
+  font-family: var(--vd-font-display);
+  font-weight: var(--vd-w-bold);
+  color: var(--vd-blue-500);
+  letter-spacing: var(--vd-tr-tight);
+  line-height: var(--vd-lh-tight);
+  text-wrap: balance;
+}
+
+h1, .vd-h1 {
+  font-size: clamp(2.25rem, 5vw, 4.5rem);  /* 36–72 */
+  font-weight: var(--vd-w-bold);
+}
+h2, .vd-h2 {
+  font-size: clamp(1.875rem, 3.5vw, 3rem); /* 30–48 */
+}
+h3, .vd-h3 {
+  font-size: var(--vd-fs-24);
+  line-height: var(--vd-lh-snug);
+}
+h4, .vd-h4 {
+  font-family: var(--vd-font-body);
+  font-weight: var(--vd-w-bold);
+  font-size: var(--vd-fs-20);
+  color: var(--vd-fg);
+  line-height: var(--vd-lh-snug);
+}
+
+/* Eyebrow / kicker — small uppercase label in blue or orange */
+.vd-eyebrow {
+  font-family: var(--vd-font-body);
+  font-weight: var(--vd-w-semi);
+  font-size: var(--vd-fs-12);
+  letter-spacing: var(--vd-tr-wider);
+  text-transform: uppercase;
+  color: var(--vd-orange-500);
+}
+
+/* Body / paragraph */
+p, .vd-body {
+  font-family: var(--vd-font-body);
+  font-weight: var(--vd-w-regular);
+  font-size: var(--vd-fs-16);
+  line-height: var(--vd-lh-relaxed);
+  color: var(--vd-fg);
+  text-wrap: pretty;
+}
+.vd-lede {
+  font-size: var(--vd-fs-20);
+  line-height: var(--vd-lh-relaxed);
+  color: var(--vd-fg-muted);
+  font-weight: var(--vd-w-regular);
+}
+.vd-small {
+  font-size: var(--vd-fs-14);
+  color: var(--vd-fg-muted);
+}
+.vd-caption {
+  font-size: var(--vd-fs-12);
+  color: var(--vd-fg-subtle);
+  letter-spacing: var(--vd-tr-wide);
+}
+
+/* Links */
+a, .vd-link {
+  color: var(--vd-blue-500);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: color var(--vd-dur-fast) var(--vd-ease-out);
+}
+a:hover, .vd-link:hover {
+  color: var(--vd-orange-500);
+}
+
+/* Code */
+code, kbd, samp, .vd-code {
+  font-family: var(--vd-font-mono);
+  font-size: 0.92em;
+  background: var(--vd-ink-50);
+  padding: 0.1em 0.35em;
+  border-radius: var(--vd-r-xs);
+  color: var(--vd-ink-800);
+}
+
+/* Selection */
+::selection {
+  background: var(--vd-yellow-500);
+  color: var(--vd-blue-500);
+}

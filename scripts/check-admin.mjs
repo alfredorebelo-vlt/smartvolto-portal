@@ -1,0 +1,12 @@
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+const { PrismaClient } = await import("../src/generated/prisma/client.ts");
+const adapter = new PrismaMariaDb(process.env.DATABASE_URL);
+const prisma = new PrismaClient({ adapter });
+const admin = await prisma.user.findFirst({ where: { isAdmin: true }, select: { id: true, email: true, name: true } });
+console.log("Admin:", JSON.stringify(admin, null, 2));
+const cats = await prisma.manualCategory.count();
+const arts = await prisma.manualArticle.count();
+console.log(`Categorias existentes: ${cats}, artigos: ${arts}`);
+await prisma.$disconnect();

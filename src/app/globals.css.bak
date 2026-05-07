@@ -1,0 +1,395 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   VOLTO DRIVE — Design Tokens
+   Source: brandbook V2 + claude design/shared/colors_and_type.css
+   ============================================================ */
+:root {
+    /* ---- Brand palette ---- */
+    --vd-blue: #2e3c8f;
+    --vd-yellow: #ffc429;
+    --vd-orange: #f29220;
+    --vd-white: #ffffff;
+    --vd-black: #231f20;
+
+    /* Brand gradients */
+    --vd-gradient-o: linear-gradient(135deg, #ffc429 0%, #f29220 100%);
+    --vd-gradient-warm: linear-gradient(90deg, #ffc429 0%, #f29220 100%);
+    --vd-gradient-warm-soft: linear-gradient(135deg, #ffd86b 0%, #f29220 100%);
+
+    /* Blue scale */
+    --vd-blue-50: #eef0fa;
+    --vd-blue-100: #d6daee;
+    --vd-blue-200: #adb5dd;
+    --vd-blue-300: #8390cb;
+    --vd-blue-400: #5a6bba;
+    --vd-blue-500: #2e3c8f;
+    --vd-blue-600: #283479;
+    --vd-blue-700: #212b63;
+    --vd-blue-800: #1a224d;
+    --vd-blue-900: #131836;
+
+    /* Yellow scale */
+    --vd-yellow-50: #fff8e2;
+    --vd-yellow-100: #ffeeb3;
+    --vd-yellow-300: #ffd96b;
+    --vd-yellow-500: #ffc429;
+    --vd-yellow-700: #d9a41e;
+
+    /* Orange scale */
+    --vd-orange-50: #fdefdc;
+    --vd-orange-100: #fbdbb0;
+    --vd-orange-300: #f6b664;
+    --vd-orange-500: #f29220;
+    --vd-orange-700: #c9761a;
+
+    /* Ink (neutrals around brand black) */
+    --vd-ink-0: #ffffff;
+    --vd-ink-50: #f7f7f8;
+    --vd-ink-100: #eeeef0;
+    --vd-ink-200: #ddddE1;
+    --vd-ink-300: #bfc0c6;
+    --vd-ink-400: #8a8b92;
+    --vd-ink-500: #5c5d64;
+    --vd-ink-600: #3f3f45;
+    --vd-ink-700: #2c2a2e;
+    --vd-ink-800: #231f20;
+    --vd-ink-900: #15131a;
+
+    /* Semantic */
+    --vd-bg: var(--vd-white);
+    --vd-bg-muted: var(--vd-ink-50);
+    --vd-bg-elevated: var(--vd-white);
+    --vd-fg: var(--vd-ink-800);
+    --vd-fg-muted: var(--vd-ink-500);
+    --vd-fg-subtle: var(--vd-ink-400);
+    --vd-border: var(--vd-ink-200);
+    --vd-border-strong: var(--vd-ink-300);
+    --vd-divider: var(--vd-ink-100);
+
+    --vd-success: #1f9d55;
+    --vd-warning: var(--vd-orange-500);
+    --vd-danger: #d7263d;
+    --vd-info: var(--vd-blue-500);
+
+    /* Spacing (4px base) */
+    --vd-s-1: 4px;
+    --vd-s-2: 8px;
+    --vd-s-3: 12px;
+    --vd-s-4: 16px;
+    --vd-s-5: 20px;
+    --vd-s-6: 24px;
+    --vd-s-8: 32px;
+    --vd-s-10: 40px;
+    --vd-s-12: 48px;
+
+    /* Radius */
+    --vd-r-xs: 4px;
+    --vd-r-sm: 8px;
+    --vd-r-md: 12px;
+    --vd-r-lg: 16px;
+    --vd-r-xl: 24px;
+    --vd-r-pill: 999px;
+
+    /* Shadows */
+    --vd-shadow-xs: 0 1px 2px rgba(35, 31, 32, 0.06);
+    --vd-shadow-sm: 0 2px 6px rgba(35, 31, 32, 0.08);
+    --vd-shadow-md: 0 8px 20px rgba(35, 31, 32, 0.10);
+    --vd-shadow-lg: 0 16px 40px rgba(35, 31, 32, 0.14);
+    --vd-shadow-blue: 0 12px 28px rgba(46, 60, 143, 0.25);
+    --vd-shadow-warm: 0 12px 28px rgba(242, 146, 32, 0.30);
+
+    /* Motion */
+    --vd-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --vd-dur-fast: 120ms;
+    --vd-dur-base: 200ms;
+}
+
+/* ============================================================
+   shadcn / Tailwind tokens — mapped to Volto palette
+   ============================================================ */
+@theme inline {
+    --font-heading: var(--font-display);
+    --font-sans: var(--font-body);
+    --font-display: var(--font-display);
+    --font-body: var(--font-body);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Brand colours exposed as Tailwind utilities */
+    --color-vd-blue: var(--vd-blue);
+    --color-vd-blue-50: var(--vd-blue-50);
+    --color-vd-blue-100: var(--vd-blue-100);
+    --color-vd-blue-500: var(--vd-blue-500);
+    --color-vd-blue-600: var(--vd-blue-600);
+    --color-vd-blue-700: var(--vd-blue-700);
+    --color-vd-blue-800: var(--vd-blue-800);
+    --color-vd-yellow: var(--vd-yellow);
+    --color-vd-yellow-50: var(--vd-yellow-50);
+    --color-vd-yellow-500: var(--vd-yellow-500);
+    --color-vd-orange: var(--vd-orange);
+    --color-vd-orange-50: var(--vd-orange-50);
+    --color-vd-orange-500: var(--vd-orange-500);
+    --color-vd-ink-50: var(--vd-ink-50);
+    --color-vd-ink-100: var(--vd-ink-100);
+    --color-vd-ink-200: var(--vd-ink-200);
+    --color-vd-ink-300: var(--vd-ink-300);
+    --color-vd-ink-400: var(--vd-ink-400);
+    --color-vd-ink-500: var(--vd-ink-500);
+    --color-vd-ink-600: var(--vd-ink-600);
+    --color-vd-ink-700: var(--vd-ink-700);
+    --color-vd-ink-800: var(--vd-ink-800);
+    --color-vd-ink-900: var(--vd-ink-900);
+    --color-vd-success: var(--vd-success);
+    --color-vd-danger: var(--vd-danger);
+
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* shadcn tokens — Volto light theme */
+    --background: #ffffff;
+    --foreground: #231f20;
+    --card: #ffffff;
+    --card-foreground: #231f20;
+    --popover: #ffffff;
+    --popover-foreground: #231f20;
+    --primary: #2e3c8f;
+    --primary-foreground: #ffffff;
+    --secondary: #eef0fa;
+    --secondary-foreground: #2e3c8f;
+    --muted: #f7f7f8;
+    --muted-foreground: #5c5d64;
+    --accent: #fdefdc;
+    --accent-foreground: #c9761a;
+    --destructive: #d7263d;
+    --border: #ddddE1;
+    --input: #ddddE1;
+    --ring: #2e3c8f;
+
+    /* Charts — brand-aligned series */
+    --chart-1: #2e3c8f;
+    --chart-2: #f29220;
+    --chart-3: #ffc429;
+    --chart-4: #5a6bba;
+    --chart-5: #1f9d55;
+
+    --radius: 0.75rem;
+
+    /* Sidebar — Volto-flavoured */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #231f20;
+    --sidebar-primary: #2e3c8f;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eef0fa;
+    --sidebar-accent-foreground: #2e3c8f;
+    --sidebar-border: #ECECEF;
+    --sidebar-ring: #2e3c8f;
+}
+
+.dark {
+    /* Dark theme — Volto brand-aligned, deep blue-ink base */
+    --background: #0b0e1f;
+    --foreground: #f0f1f7;
+    --card: #13172e;
+    --card-foreground: #f0f1f7;
+    --popover: #13172e;
+    --popover-foreground: #f0f1f7;
+    --primary: #f29220;
+    --primary-foreground: #0b0e1f;
+    --secondary: #1a1f3d;
+    --secondary-foreground: #f0f1f7;
+    --muted: #1a1f3d;
+    --muted-foreground: #9498b5;
+    --accent: #2a2540;
+    --accent-foreground: #f29220;
+    --destructive: #ff6b6b;
+    --border: #252a4a;
+    --input: #252a4a;
+    --ring: #8390cb;
+
+    /* Override semantic VD tokens for dark */
+    --vd-bg: #0b0e1f;
+    --vd-bg-muted: #1a1f3d;
+    --vd-bg-elevated: #13172e;
+    --vd-fg: #f0f1f7;
+    --vd-fg-muted: #9498b5;
+    --vd-fg-subtle: #6e7299;
+    --vd-border: #252a4a;
+    --vd-border-strong: #353a5e;
+    --vd-divider: #1a1f3d;
+
+    --sidebar: #13172e;
+    --sidebar-foreground: #f0f1f7;
+    --sidebar-primary: #f29220;
+    --sidebar-primary-foreground: #0b0e1f;
+    --sidebar-accent: #2a2540;
+    --sidebar-accent-foreground: #f29220;
+    --sidebar-border: #252a4a;
+    --sidebar-ring: #5a6bba;
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+    html {
+        @apply font-sans;
+    }
+    h1, h2, h3, h4 {
+        font-family: var(--font-display), system-ui, sans-serif;
+        letter-spacing: -0.02em;
+    }
+    ::selection {
+        background: var(--vd-yellow-500);
+        color: var(--vd-blue-500);
+    }
+}
+
+/* ============================================================
+   Volto utility classes — display type, eyebrow, lede
+   ============================================================ */
+@layer components {
+    .vd-eyebrow {
+        font-family: var(--font-body), system-ui, sans-serif;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--vd-orange-500);
+    }
+    .vd-display {
+        font-family: var(--font-display), system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        color: var(--vd-blue-500);
+    }
+    .vd-lede {
+        font-size: 1.25rem;
+        line-height: 1.65;
+        color: var(--vd-fg-muted);
+        font-weight: 400;
+    }
+
+    /* ===== Rich-text content (manual articles + editor) ===== */
+    .vd-richtext {
+        color: var(--foreground);
+        font-size: 0.9rem;
+        line-height: 1.65;
+    }
+    .vd-richtext h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--foreground);
+    }
+    .vd-richtext h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        margin: 1.1rem 0 0.4rem;
+        color: var(--foreground);
+    }
+    .vd-richtext h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0.9rem 0 0.35rem;
+        color: var(--foreground);
+    }
+    .vd-richtext p {
+        margin: 0.5rem 0;
+    }
+    .vd-richtext ul,
+    .vd-richtext ol {
+        margin: 0.5rem 0 0.5rem 1.25rem;
+        padding-left: 0.25rem;
+    }
+    .vd-richtext ul {
+        list-style: disc;
+    }
+    .vd-richtext ol {
+        list-style: decimal;
+    }
+    .vd-richtext li {
+        margin: 0.2rem 0;
+    }
+    .vd-richtext li > p {
+        margin: 0;
+    }
+    .vd-richtext strong {
+        font-weight: 700;
+        color: var(--foreground);
+    }
+    .vd-richtext em {
+        font-style: italic;
+    }
+    .vd-richtext blockquote {
+        border-left: 3px solid var(--vd-blue-500);
+        margin: 0.75rem 0;
+        padding: 0.25rem 0 0.25rem 0.85rem;
+        color: var(--muted-foreground);
+        font-style: italic;
+    }
+    .vd-richtext a {
+        color: var(--vd-blue-500);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .vd-richtext a:hover {
+        opacity: 0.85;
+    }
+    .vd-richtext .ProseMirror p.is-editor-empty:first-child::before {
+        color: var(--muted-foreground);
+        content: attr(data-placeholder);
+        float: left;
+        height: 0;
+        pointer-events: none;
+    }
+}
