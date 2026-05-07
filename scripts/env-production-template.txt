@@ -1,0 +1,19 @@
+# =============================================================
+# PRODUÇÃO — copia para ~/.env.local no servidor
+# Substitui todos os valores entre < >
+# =============================================================
+
+DATABASE_URL=mysql://voltodrive_admin:<PASSWORD>@localhost:3306/voltodrive_voltosmart
+
+AUTH_SECRET=<gera com: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))">
+AUTH_TRUST_HOST=true
+
+AUTH_GOOGLE_ID=<o mesmo do desenvolvimento>
+AUTH_GOOGLE_SECRET=<o mesmo do desenvolvimento>
+
+NEXTAUTH_URL=https://smartvolto.voltodrive.com
+
+GOOGLE_WORKSPACE_ADMIN_EMAIL=admin@voltodrive.com
+GOOGLE_WORKSPACE_CLIENT_EMAIL=<service-account@....iam.gserviceaccount.com>
+GOOGLE_WORKSPACE_PRIVATE_KEY="<chave privada da service account>"
+GOOGLE_WORKSPACE_DOMAIN=voltodrive.com
