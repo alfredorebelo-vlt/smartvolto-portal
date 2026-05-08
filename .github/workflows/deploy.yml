@@ -48,17 +48,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Fazer checkout do branch deploy existente (ou criar se não existir)
+          git fetch origin deploy || true
+          git checkout -B deploy origin/deploy 2>/dev/null || git checkout -B deploy
+
+          # Copiar os ficheiros do build do main para o deploy
+          git checkout main -- .
+          git checkout main -- .next/ 2>/dev/null || true
+
           # Remover .next do .gitignore para incluir o build
           sed -i '/.next/d' .gitignore
 
-          # Adicionar todos os ficheiros incluindo o build
-          git add .next/
+          # Adicionar tudo
           git add -A
 
-          git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
+          git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
 
-      - name: Push para branch deploy (fast-forward seguro)
-        run: |
-          # Apaga o branch deploy remoto e recria linearmente a partir do commit actual
-          git push origin --delete deploy || true
-          git push origin HEAD:deploy
+      - name: Push para branch deploy
+        run: git push origin deploy
