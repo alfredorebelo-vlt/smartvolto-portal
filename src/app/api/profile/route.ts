@@ -32,6 +32,7 @@ export async function PATCH(req: NextRequest) {
     bio?: string;
     linkedinUrl?: string;
     workLocation?: string;
+    dateOfBirth?: string | null;
   };
 
   const data: Record<string, unknown> = {};
@@ -49,6 +50,15 @@ export async function PATCH(req: NextRequest) {
   }
   if (body.workLocation !== undefined) {
     data.workLocation = body.workLocation.trim().slice(0, 100) || null;
+  }
+  if (body.dateOfBirth !== undefined) {
+    if (body.dateOfBirth === null || body.dateOfBirth === "") {
+      data.dateOfBirth = null;
+    } else {
+      const parsed = new Date(body.dateOfBirth);
+      if (isNaN(parsed.getTime())) return NextResponse.json({ error: "Data de nascimento inválida" }, { status: 400 });
+      data.dateOfBirth = parsed;
+    }
   }
 
   const user = await prisma.user.update({

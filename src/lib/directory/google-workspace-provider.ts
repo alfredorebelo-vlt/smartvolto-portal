@@ -152,6 +152,23 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
       const managerRel = g.relations?.find((r) => r.type === "manager");
       const building = g.locations?.find((l) => l.type === "desk") ?? g.locations?.[0];
 
+      // Tenta ler dateOfBirth de campos personalizados do Google Workspace
+      // Suporta vários nomes comuns: Birthday, HR, Employee_Info
+      let dateOfBirth: Date | undefined;
+      const customSchemas = g.customSchemas as Record<string, Record<string, string>> | undefined;
+      if (customSchemas) {
+        const dobRaw =
+          customSchemas["Birthday"]?.["Date_of_Birth"] ??
+          customSchemas["HR"]?.["Date_of_Birth"] ??
+          customSchemas["HR"]?.["Birthday"] ??
+          customSchemas["Employee_Info"]?.["Date_of_Birth"] ??
+          customSchemas["Personal"]?.["Date_of_Birth"];
+        if (dobRaw) {
+          const parsed = new Date(dobRaw);
+          if (!isNaN(parsed.getTime())) dateOfBirth = parsed;
+        }
+      }
+
       const data = {
         name: fullName,
         givenName,
@@ -166,6 +183,7 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
         isAdmin: g.isAdmin ?? false,
         status: (g.suspended ? "SUSPENDED" : "ACTIVE") as "ACTIVE" | "SUSPENDED",
         lastSyncedAt: new Date(),
+        ...(dateOfBirth !== undefined && { dateOfBirth }),
       };
 
       await prisma.user.upsert({
@@ -209,4 +227,5 @@ interface GWorkspaceUser {
   phones?: Array<{ value?: string | null; type?: string | null }> | null;
   relations?: Array<{ value?: string | null; type?: string | null }> | null;
   locations?: Array<{ buildingId?: string | null; type?: string | null }> | null;
+  customSchemas?: unknown;
 }

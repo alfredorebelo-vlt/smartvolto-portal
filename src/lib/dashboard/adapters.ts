@@ -48,36 +48,24 @@ async function fetchAnnouncements(config: AnnouncementsConfig): Promise<AdapterR
 
 /* ---- birthdays ---- */
 async function fetchBirthdays(config: BirthdaysConfig): Promise<AdapterResult> {
-  const daysAhead = config.daysAhead ?? 30;
+  const limit = config.limit ?? 3;
   const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const users = await prisma.user.findMany({
-    where: { status: "ACTIVE", startDate: { not: null } },
+    where: { status: "ACTIVE", dateOfBirth: { not: null } },
     select: {
       id: true, name: true, givenName: true, familyName: true, image: true,
-      jobTitle: true, startDate: true,
+      jobTitle: true, dateOfBirth: true,
     },
   });
 
-  // Filter by birthday window (month+day only, year-agnostic)
   const upcoming = users
-    .filter((u) => {
-      if (!u.startDate) return false;
-      // Use startDate as a proxy for birthday (Workspace doesn't expose birthdays)
-      // Replace with actual birthday field when available
-      const bday = new Date(u.startDate);
-      const thisYear = new Date(now.getFullYear(), bday.getMonth(), bday.getDate());
-      const nextYear = new Date(now.getFullYear() + 1, bday.getMonth(), bday.getDate());
-      const target = thisYear >= now ? thisYear : nextYear;
-      const diffDays = Math.ceil((target.getTime() - now.getTime()) / 86400000);
-      return diffDays >= 0 && diffDays <= daysAhead;
-    })
     .map((u) => {
-      const bday = new Date(u.startDate!);
+      const bday = new Date(u.dateOfBirth!);
       const thisYear = new Date(now.getFullYear(), bday.getMonth(), bday.getDate());
-      const nextYear = new Date(now.getFullYear() + 1, bday.getMonth(), bday.getDate());
-      const target = thisYear >= now ? thisYear : nextYear;
-      const diffDays = Math.ceil((target.getTime() - now.getTime()) / 86400000);
+      const target = thisYear >= todayStart ? thisYear : new Date(now.getFullYear() + 1, bday.getMonth(), bday.getDate());
+      const diffDays = Math.round((target.getTime() - todayStart.getTime()) / 86400000);
       return {
         id: u.id,
         name: u.givenName && u.familyName ? `${u.givenName} ${u.familyName}` : (u.name ?? ""),
@@ -87,7 +75,8 @@ async function fetchBirthdays(config: BirthdaysConfig): Promise<AdapterResult> {
         daysUntil: diffDays,
       };
     })
-    .sort((a, b) => a.daysUntil - b.daysUntil);
+    .sort((a, b) => a.daysUntil - b.daysUntil)
+    .slice(0, limit);
 
   return { ok: true, data: upcoming };
 }

@@ -15,7 +15,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Widget não encontrado" }, { status: 404 });
   }
 
-  const result = await fetchWidgetData(widget.type as WidgetType, widget.config as WidgetConfig);
+  let result;
+  try {
+    result = await fetchWidgetData(widget.type as WidgetType, widget.config as WidgetConfig);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[widget/${id}] fetchWidgetData error:`, msg);
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+  }
 
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 502 });

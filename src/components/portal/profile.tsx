@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Mail, Phone, Building2, Briefcase, MapPin, Link2,
-  RefreshCw, Pencil, Check, X, User, ShieldCheck,
+  RefreshCw, Pencil, Check, X, User, ShieldCheck, Cake,
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ type ProfileUser = {
   bio: string | null;
   linkedinUrl: string | null;
   workLocation: string | null;
+  dateOfBirth: string | null;
   role: { id: string; name: string; description: string | null } | null;
 };
 
@@ -33,13 +34,14 @@ type EditableFields = {
   bio: string;
   linkedinUrl: string;
   workLocation: string;
+  dateOfBirth: string;
 };
 
 export function Profile() {
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<EditableFields>({ bio: "", linkedinUrl: "", workLocation: "" });
+  const [form, setForm] = useState<EditableFields>({ bio: "", linkedinUrl: "", workLocation: "", dateOfBirth: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +55,7 @@ export function Profile() {
         bio: data.user.bio ?? "",
         linkedinUrl: data.user.linkedinUrl ?? "",
         workLocation: data.user.workLocation ?? "",
+        dateOfBirth: data.user.dateOfBirth ? data.user.dateOfBirth.split("T")[0] : "",
       });
     }
     setLoading(false);
@@ -66,6 +69,7 @@ export function Profile() {
       bio: user.bio ?? "",
       linkedinUrl: user.linkedinUrl ?? "",
       workLocation: user.workLocation ?? "",
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
     });
     setError(null);
     setEditing(true);
@@ -284,6 +288,18 @@ export function Profile() {
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                  Data de nascimento
+                </label>
+                <input
+                  type="date"
+                  value={form.dateOfBirth}
+                  onChange={(e) => setForm((p) => ({ ...p, dateOfBirth: e.target.value }))}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+                />
+                <p className="mt-0.5 text-[10px] text-[var(--muted-foreground)]">Usada no widget de aniversários da equipa.</p>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -310,7 +326,13 @@ export function Profile() {
                     <span>{user.workLocation}</span>
                   </div>
                 )}
-                {!user.linkedinUrl && !user.workLocation && (
+                {user.dateOfBirth && (
+                  <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                    <Cake className="size-4 shrink-0" />
+                    <span>{new Date(user.dateOfBirth).toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</span>
+                  </div>
+                )}
+                {!user.linkedinUrl && !user.workLocation && !user.dateOfBirth && (
                   <p className="m-0 text-xs italic text-[var(--muted-foreground)]/60">Sem dados adicionais.</p>
                 )}
               </div>

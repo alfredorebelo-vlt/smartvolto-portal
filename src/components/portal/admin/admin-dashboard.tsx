@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, Pencil, Trash2, GripVertical, Eye, EyeOff,
-  LayoutDashboard, ChevronDown, ChevronUp, Save, X,
+  LayoutDashboard, ChevronDown, ChevronUp, Save, X, Link,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WidgetType } from "@/lib/dashboard/types";
+
+type QuickLink = { label: string; url: string; color: string };
 
 type Widget = {
   id: string;
@@ -234,17 +236,28 @@ function WidgetForm({
   const [configText, setConfigText] = useState(
     JSON.stringify(widget?.config ?? getDefaultConfig(widget?.type ?? "announcements"), null, 2)
   );
+  const [links, setLinks] = useState<QuickLink[]>(() => {
+    const cfg = widget?.config as { links?: QuickLink[] } | undefined;
+    return cfg?.links ?? [{ label: "", url: "https://", color: "#2e3c8f" }];
+  });
   const [configError, setConfigError] = useState("");
   const [saving, setSaving] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Update default config when type changes (only for new widgets)
   function handleTypeChange(t: WidgetType) {
     setType(t);
     if (!isEdit) setConfigText(JSON.stringify(getDefaultConfig(t), null, 2));
   }
 
   function validateConfig(): Record<string, unknown> | null {
+    if (type === "quick_links") {
+      if (links.some((l) => !l.label.trim() || !l.url.trim())) {
+        setConfigError("Todos os links precisam de nome e URL");
+        return null;
+      }
+      setConfigError("");
+      return { links: links.map((l) => ({ ...l, icon: "link" })) };
+    }
     try {
       const parsed = JSON.parse(configText);
       setConfigError("");
@@ -273,13 +286,35 @@ function WidgetForm({
     onClose();
   }
 
+  function addLink() {
+    setLinks((prev) => [...prev, { label: "", url: "https://", color: "#2e3c8f" }]);
+  }
+
+  function removeLink(i: number) {
+    setLinks((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function updateLink(i: number, field: keyof QuickLink, value: string) {
+    setLinks((prev) => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
+  }
+
+  function moveLink(i: number, dir: -1 | 1) {
+    setLinks((prev) => {
+      const next = [...prev];
+      const j = i + dir;
+      if (j < 0 || j >= next.length) return prev;
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+
   return (
     <div
       ref={overlayRef}
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
     >
-      <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl">
+      <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="size-4 text-[var(--vd-blue-500)]" />
@@ -314,7 +349,7 @@ function WidgetForm({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="ex: Anúncios recentes"
+              placeholder="ex: Ações rápidas"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
             />
           </div>
@@ -344,23 +379,79 @@ function WidgetForm({
             </div>
           </div>
 
-          {/* Config JSON */}
-          <div>
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-              Configuração (JSON)
-            </label>
-            <textarea
-              value={configText}
-              onChange={(e) => { setConfigText(e.target.value); setConfigError(""); }}
-              rows={8}
-              spellCheck={false}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-            />
-            {configError && <p className="mt-1 text-xs text-red-500">{configError}</p>}
-            <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
-              <ConfigHint type={type} />
-            </p>
-          </div>
+          {/* Editor visual de links — só para quick_links */}
+          {type === "quick_links" ? (
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Links</label>
+              <div className="flex flex-col gap-2">
+                {links.map((link, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2">
+                    <div className="flex flex-col gap-1">
+                      <button type="button" onClick={() => moveLink(i, -1)} disabled={i === 0}
+                        className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--accent)] disabled:opacity-20">
+                        <ChevronUp className="size-3" />
+                      </button>
+                      <button type="button" onClick={() => moveLink(i, 1)} disabled={i === links.length - 1}
+                        className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--accent)] disabled:opacity-20">
+                        <ChevronDown className="size-3" />
+                      </button>
+                    </div>
+                    <input
+                      type="color"
+                      value={link.color}
+                      onChange={(e) => updateLink(i, "color", e.target.value)}
+                      className="size-8 shrink-0 cursor-pointer rounded border border-[var(--border)] bg-transparent p-0.5"
+                      title="Cor do ícone"
+                    />
+                    <div className="flex flex-1 flex-col gap-1 min-w-0">
+                      <input
+                        type="text"
+                        value={link.label}
+                        onChange={(e) => updateLink(i, "label", e.target.value)}
+                        placeholder="Nome do link"
+                        className="w-full rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ring)]/30"
+                      />
+                      <input
+                        type="url"
+                        value={link.url}
+                        onChange={(e) => updateLink(i, "url", e.target.value)}
+                        placeholder="https://"
+                        className="w-full rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs text-[var(--muted-foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)]/30"
+                      />
+                    </div>
+                    <button type="button" onClick={() => removeLink(i)}
+                      className="grid size-7 shrink-0 place-items-center rounded text-[var(--muted-foreground)] hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20">
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addLink}
+                  className="flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)] hover:text-[var(--vd-blue-500)]">
+                  <Link className="size-3.5" />
+                  Adicionar link
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Config JSON — para todos os outros tipos */
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                Configuração (JSON)
+              </label>
+              <textarea
+                value={configText}
+                onChange={(e) => { setConfigText(e.target.value); setConfigError(""); }}
+                rows={8}
+                spellCheck={false}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+              />
+              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+                <ConfigHint type={type} />
+              </p>
+            </div>
+          )}
+
+          {configError && <p className="text-xs text-red-500">{configError}</p>}
 
           {/* Activo */}
           <label className="flex cursor-pointer items-center gap-2.5 text-sm">
@@ -399,7 +490,7 @@ function WidgetForm({
 function getDefaultConfig(type: WidgetType): Record<string, unknown> {
   switch (type) {
     case "announcements":   return { limit: 3 };
-    case "birthdays":       return { daysAhead: 30 };
+    case "birthdays":       return { limit: 3 };
     case "calendar_events": return { calendarIds: [], daysAhead: 7, maxEvents: 5 };
     case "tasks":           return { showCompleted: false, maxTasks: 10 };
     case "quick_links":     return { links: [{ label: "Exemplo", url: "https://", icon: "link", color: "#2e3c8f" }] };
@@ -419,7 +510,7 @@ function getDefaultConfig(type: WidgetType): Record<string, unknown> {
 function ConfigHint({ type }: { type: WidgetType }) {
   const hints: Record<WidgetType, string> = {
     announcements:   "limit — número de anúncios a mostrar",
-    birthdays:       "daysAhead — dias à frente para mostrar aniversários",
+    birthdays:       "limit — número de próximos aniversários a mostrar (padrão: 3)",
     calendar_events: "calendarIds (array de IDs do Google Calendar), daysAhead, maxEvents",
     tasks:           "showCompleted — mostrar tarefas concluídas; maxTasks — máximo de tarefas a mostrar",
     quick_links:     "links — array de { label, url, icon, color? }",

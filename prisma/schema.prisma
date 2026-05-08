@@ -33,6 +33,7 @@ model User {
   phoneNumber           String?
   managerEmail          String?
   startDate             DateTime?
+  dateOfBirth           DateTime?
   isAdmin               Boolean        @default(false)
   status                UserStatus     @default(ACTIVE)
   lastSyncedAt          DateTime?

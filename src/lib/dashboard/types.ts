@@ -12,7 +12,7 @@ export type WidgetType =
 
 // Config por tipo — o que o admin guarda no campo `config` (JSON)
 export type AnnouncementsConfig = { limit: number };
-export type BirthdaysConfig = { daysAhead: number };
+export type BirthdaysConfig = { limit?: number };
 export type CalendarEventsConfig = { calendarIds: string[]; daysAhead: number; maxEvents: number };
 export type QuickLinksConfig = { links: { label: string; url: string; icon: string; color?: string }[] };
 export type KpiN8nConfig = {
