@@ -50,3 +50,9 @@ prisma/generated
 # OS
 .DS_Store
 desktop.ini
+
+# SQL backup/export files (contain sensitive data)
+*.sql
+
+# Claude Code internal settings
+.claude/
