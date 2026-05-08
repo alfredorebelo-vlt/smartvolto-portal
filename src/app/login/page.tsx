@@ -76,7 +76,7 @@ export default async function LoginPage({
         <div className="flex items-center gap-3">
           <Image
             src="/brand/symbol.png"
-            alt="Smart Volto"
+            alt="Volto Smart"
             width={36}
             height={36}
             priority
@@ -86,7 +86,7 @@ export default async function LoginPage({
             className="text-xl font-semibold tracking-tight text-white"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Smart Volto
+            Volto Smart
           </span>
         </div>
 
@@ -123,7 +123,7 @@ export default async function LoginPage({
           <div className="mb-8 flex items-center justify-center gap-2 lg:hidden">
             <Image
               src="/brand/symbol.png"
-              alt="Smart Volto"
+              alt="Volto Smart"
               width={28}
               height={28}
               priority
@@ -133,7 +133,7 @@ export default async function LoginPage({
               className="text-lg font-semibold text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Smart Volto
+              Volto Smart
             </span>
           </div>
 

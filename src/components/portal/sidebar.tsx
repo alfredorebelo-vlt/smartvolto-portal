@@ -84,7 +84,7 @@ export function Sidebar({ active, onNav, mobileOpen = false, onCloseMobile }: Pr
           <div className="flex items-center gap-2.5 py-4 pl-1">
             <Image src="/brand/symbol.png" alt="" width={40} height={40} priority className="size-10 shrink-0" />
             <div className="flex flex-col leading-none">
-              <span className="text-xl font-bold text-[var(--vd-blue-500)]" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>Smart Volto</span>
+              <span className="text-xl font-bold text-[var(--vd-blue-500)]" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>Volto Smart</span>
             </div>
           </div>
         </div>

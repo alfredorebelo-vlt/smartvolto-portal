@@ -1,4 +1,4 @@
-# Configuração Google OAuth — SmartVolto Portal
+# Configuração Google OAuth — Volto Smart Portal
 
 Guia passo-a-passo para criar credenciais OAuth no Google Cloud Console.
 
@@ -18,7 +18,7 @@ Guia passo-a-passo para criar credenciais OAuth no Google Cloud Console.
 1. No topo da página, clica no seletor de projeto
 2. Clica **"NOVO PROJETO"**
 3. Preenche:
-   - **Nome do projeto**: `SmartVolto Portal`
+   - **Nome do projeto**: `Volto Smart Portal`
    - **Organização**: voltodrive.com (se aparecer)
    - **Localização**: voltodrive.com
 4. Clica **"CRIAR"**
@@ -35,11 +35,11 @@ Guia passo-a-passo para criar credenciais OAuth no Google Cloud Console.
 2. Escolhe **"Interno"** (apenas utilizadores @voltodrive.com)
 3. Clica **"CRIAR"**
 4. Preenche:
-   - **Nome da app**: `SmartVolto Portal`
+   - **Nome da app**: `Volto Smart Portal`
    - **Email de apoio do utilizador**: admin@voltodrive.com
    - **Logótipo da app** (opcional): faz upload de `public/brand/symbol.png`
    - **Domínio da app**:
-     - **Página inicial**: `https://smartvolto.voltodrive.com`
+     - **Página inicial**: `https://voltosmart.voltodrive.com`
      - **Política de privacidade**: deixa vazio por agora (obrigatório só em produção)
      - **Termos de serviço**: deixa vazio
    - **Domínios autorizados**: adiciona `voltodrive.com`
@@ -56,16 +56,16 @@ Guia passo-a-passo para criar credenciais OAuth no Google Cloud Console.
 2. Clica **"+ CRIAR CREDENCIAIS"** → **"ID de cliente OAuth"**
 3. Preenche:
    - **Tipo de aplicação**: `Aplicação Web`
-   - **Nome**: `SmartVolto Portal — Web`
+   - **Nome**: `Volto Smart Portal — Web`
 4. **Origens de JavaScript autorizadas** (adiciona ambas):
    ```
    http://localhost:3000
-   https://smartvolto.voltodrive.com
+   https://voltosmart.voltodrive.com
    ```
 5. **URIs de redirecionamento autorizados** (adiciona ambas):
    ```
    http://localhost:3000/api/auth/callback/google
-   https://smartvolto.voltodrive.com/api/auth/callback/google
+   https://voltosmart.voltodrive.com/api/auth/callback/google
    ```
 6. Clica **"CRIAR"**
 7. Aparece uma janela com:
@@ -109,7 +109,7 @@ AUTH_GOOGLE_SECRET="cola-aqui-o-client-secret"
 
 ---
 
-## Para Produção (smartvolto.voltodrive.com)
+## Para Produção (voltosmart.voltodrive.com)
 
 Quando deployares, atualiza:
 
@@ -119,7 +119,7 @@ Quando deployares, atualiza:
    AUTH_GOOGLE_SECRET="mesmo-secret-que-localmente"
    AUTH_SECRET="gera-um-novo-aleatorio"
    AUTH_TRUST_HOST="true"
-   NEXTAUTH_URL="https://smartvolto.voltodrive.com"
+   NEXTAUTH_URL="https://voltosmart.voltodrive.com"
    ```
 
 2. **Regista o domínio em produção** (Passo 4) — já está feito se seguiste este guia.

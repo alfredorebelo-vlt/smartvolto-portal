@@ -1,4 +1,4 @@
-# Google Workspace Directory Sync — SmartVolto Portal
+# Google Workspace Directory Sync — Volto Smart Portal
 
 Guia para configurar a sincronização automática de colaboradores do Google Workspace.
 
@@ -16,7 +16,7 @@ Guia para configurar a sincronização automática de colaboradores do Google Wo
 
 ## Passo 1: Ativar a Admin Directory API
 
-1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) → projeto SmartVolto Portal
+1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) → projeto Volto Smart Portal
 2. Menu lateral → **"APIs e serviços" → "Biblioteca"**
 3. Pesquisa **"Admin SDK API"** → clica → **"Ativar"**
 
@@ -27,8 +27,8 @@ Guia para configurar a sincronização automática de colaboradores do Google Wo
 1. Menu lateral → **"APIs e serviços" → "Credenciais"**
 2. Clica **"+ CRIAR CREDENCIAIS" → "Conta de serviço"**
 3. Preenche:
-   - **Nome**: `SmartVolto Directory Sync`
-   - **ID**: `smartvolto-directory-sync`
+   - **Nome**: `VoltoSmart Directory Sync`
+   - **ID**: `voltosmart-directory-sync`
 4. Clica **"CRIAR E CONTINUAR"** → **"CONCLUIR"** (sem atribuir papéis)
 5. Na lista de contas de serviço, clica na que acabaste de criar
 6. Vai ao separador **"Chaves"** → **"ADICIONAR CHAVE" → "Criar nova chave"**
@@ -42,7 +42,7 @@ O ficheiro JSON tem este formato:
   "project_id": "...",
   "private_key_id": "...",
   "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n",
-  "client_email": "smartvolto-directory-sync@...iam.gserviceaccount.com",
+  "client_email": "voltosmart-directory-sync@...iam.gserviceaccount.com",
   "client_id": "...",
   ...
 }
@@ -67,15 +67,15 @@ O ficheiro JSON tem este formato:
 
 ### 4.1 — Abre o ficheiro JSON da service account
 
-Após descarregar o ficheiro no Passo 2 (ex: `smartvolto-portal-abc123.json`), abre-o num editor de texto. Deverás ver algo assim:
+Após descarregar o ficheiro no Passo 2 (ex: `voltosmart-portal-abc123.json`), abre-o num editor de texto. Deverás ver algo assim:
 
 ```json
 {
   "type": "service_account",
-  "project_id": "smartvolto-portal",
+  "project_id": "voltosmart-portal",
   "private_key_id": "abc123def456...",
   "private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA1234...\n...\n-----END RSA PRIVATE KEY-----\n",
-  "client_email": "smartvolto-directory-sync@smartvolto-portal.iam.gserviceaccount.com",
+  "client_email": "voltosmart-directory-sync@voltosmart-portal.iam.gserviceaccount.com",
   "client_id": "123456789012345678901",
   ...
 }
@@ -98,7 +98,7 @@ Abre o ficheiro `.env.local` na raiz do projeto e preenche as 4 linhas:
 GOOGLE_WORKSPACE_ADMIN_EMAIL="admin@voltodrive.com"
 
 # Email da service account — copia exatamente o campo "client_email" do JSON
-GOOGLE_WORKSPACE_CLIENT_EMAIL="smartvolto-directory-sync@smartvolto-portal.iam.gserviceaccount.com"
+GOOGLE_WORKSPACE_CLIENT_EMAIL="voltosmart-directory-sync@voltosmart-portal.iam.gserviceaccount.com"
 
 # Chave privada — ver instruções abaixo (4.4)
 GOOGLE_WORKSPACE_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIEo...\n-----END RSA PRIVATE KEY-----\n"
@@ -136,7 +136,7 @@ O teu `.env.local` deverá ter estas 4 linhas preenchidas (sem aspas vazias):
 
 ```env
 GOOGLE_WORKSPACE_ADMIN_EMAIL="admin@voltodrive.com"
-GOOGLE_WORKSPACE_CLIENT_EMAIL="smartvolto-directory-sync@<o-teu-project-id>.iam.gserviceaccount.com"
+GOOGLE_WORKSPACE_CLIENT_EMAIL="voltosmart-directory-sync@<o-teu-project-id>.iam.gserviceaccount.com"
 GOOGLE_WORKSPACE_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...conteúdo longo...\n-----END RSA PRIVATE KEY-----\n"
 GOOGLE_WORKSPACE_DOMAIN="voltodrive.com"
 ```

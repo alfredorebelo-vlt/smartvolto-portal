@@ -10,9 +10,9 @@
 ### 2. Create Database User
 ```bash
 mysql -u root
-CREATE DATABASE smartvolto_portal_dev;
-CREATE USER 'smartvolto_dev'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON smartvolto_portal_dev.* TO 'smartvolto_dev'@'localhost';
+CREATE DATABASE voltosmart_portal_dev;
+CREATE USER 'voltosmart_dev'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON voltosmart_portal_dev.* TO 'voltosmart_dev'@'localhost';
 FLUSH PRIVILEGES;
 exit
 ```
@@ -20,7 +20,7 @@ exit
 ### 3. Configure Environment
 Copy `.env.example` to `.env.local` and update DATABASE_URL:
 ```env
-DATABASE_URL="mysql://smartvolto_dev:your_password@localhost:3306/smartvolto_portal_dev"
+DATABASE_URL="mysql://voltosmart_dev:your_password@localhost:3306/voltosmart_portal_dev"
 NEXTAUTH_SECRET="your-random-32-char-secret"
 NEXTAUTH_URL="http://localhost:3000"
 ```

@@ -96,7 +96,7 @@ Se a porta 3306 está completamente bloqueada, muda para outra porta:
 
 Se mudaste a porta, atualiza o `.env.local`:
 ```env
-DATABASE_URL="mysql://smartvolto_dev:senha@localhost:3307/smartvolto_portal_dev"
+DATABASE_URL="mysql://voltosmart_dev:senha@localhost:3307/voltosmart_portal_dev"
 ```
 
 ---
@@ -172,16 +172,16 @@ Se o XAMPP continua com problemas, podes usar Docker (mais fácil):
 1. Instala Docker Desktop: https://www.docker.com/products/docker-desktop
 2. Executa:
    ```bash
-   docker run --name smartvolto-mysql \
+   docker run --name voltosmart-mysql \
      -e MYSQL_ROOT_PASSWORD=root \
-     -e MYSQL_DATABASE=smartvolto_portal_dev \
+     -e MYSQL_DATABASE=voltosmart_portal_dev \
      -p 3306:3306 \
      -d mysql:8.0
    ```
 
 3. Atualiza `.env.local`:
    ```env
-   DATABASE_URL="mysql://root:root@localhost:3306/smartvolto_portal_dev"
+   DATABASE_URL="mysql://root:root@localhost:3306/voltosmart_portal_dev"
    ```
 
 4. Continua com o resto da configuração

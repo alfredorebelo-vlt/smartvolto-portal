@@ -1,4 +1,4 @@
-# Ativar Gmail e Google Tasks no SmartVolto Portal
+# Ativar Gmail e Google Tasks no Volto Smart Portal
 
 Guia para adicionar os scopes de Gmail e Google Tasks ao portal, permitindo mostrar emails por ler e tarefas vencidas no painel de boas-vindas.
 
@@ -16,7 +16,7 @@ Após esta configuração, o Hero do portal vai mostrar:
 
 ### 1.1 — Gmail API
 
-1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) → projeto **SmartVolto Portal**
+1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) → projeto **Volto Smart Portal**
 2. Menu lateral → **"APIs e serviços"** → **"Biblioteca"**
 3. Pesquisa **"Gmail API"** → clica → **"ATIVAR"**
 

@@ -1,26 +1,32 @@
-name: Deploy para cPanel
+name: Build e Deploy para cPanel
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout código
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Instalar dependências
         run: npm ci
 
-      - name: Build
+      - name: Gerar cliente Prisma
+        run: npx prisma generate
+
+      - name: Build Next.js
         run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -29,28 +35,31 @@ jobs:
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
           AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          GOOGLE_WORKSPACE_ADMIN_EMAIL: ${{ secrets.GOOGLE_WORKSPACE_ADMIN_EMAIL }}
+          GOOGLE_WORKSPACE_CLIENT_EMAIL: ${{ secrets.GOOGLE_WORKSPACE_CLIENT_EMAIL }}
+          GOOGLE_WORKSPACE_PRIVATE_KEY: ${{ secrets.GOOGLE_WORKSPACE_PRIVATE_KEY }}
+          GOOGLE_WORKSPACE_DOMAIN: ${{ secrets.GOOGLE_WORKSPACE_DOMAIN }}
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Preparar branch deploy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Criar ou resetar o branch deploy a partir do main
+          git checkout -B deploy
+
+          # Remover .next do .gitignore para incluir o build
+          sed -i '/.next/d' .gitignore
+
+          # Adicionar o build ao commit
+          git add .next/
+          git add -A
+
+          git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
+
+      - name: Push para branch deploy
+        uses: ad-m/github-push-action@v0.8.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            set -e
-            cd ${{ secrets.APP_DIR }}
-
-            echo ">>> Pull do repositório"
-            git pull origin main
-
-            echo ">>> Instalar dependências de produção"
-            npm ci --omit=dev
-
-            echo ">>> Aplicar migrações da base de dados"
-            npx prisma migrate deploy
-
-            echo ">>> Build da aplicação"
-            npm run build
-
-            echo ">>> Reiniciar aplicação"
-            touch tmp/restart.txt
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: deploy
+          force: true

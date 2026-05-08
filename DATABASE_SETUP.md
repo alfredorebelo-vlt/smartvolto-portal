@@ -1,5 +1,5 @@
 # Database Setup & Migration Guide
-## SmartVolto Portal — MySQL with XAMPP (Local) and Apache (Production)
+## Volto Smart Portal — MySQL with XAMPP (Local) and Apache (Production)
 
 ---
 
@@ -31,19 +31,19 @@ mysql -u root -p
 mysql -u root
 
 # Create database
-CREATE DATABASE smartvolto_portal_dev;
+CREATE DATABASE voltosmart_portal_dev;
 
 # Create dedicated database user (security best practice)
-CREATE USER 'smartvolto_dev'@'localhost' IDENTIFIED BY 'your_secure_password_here';
+CREATE USER 'voltosmart_dev'@'localhost' IDENTIFIED BY 'your_secure_password_here';
 
 # Grant all privileges on the database
-GRANT ALL PRIVILEGES ON smartvolto_portal_dev.* TO 'smartvolto_dev'@'localhost';
+GRANT ALL PRIVILEGES ON voltosmart_portal_dev.* TO 'voltosmart_dev'@'localhost';
 
 # Apply changes
 FLUSH PRIVILEGES;
 
 # Verify
-SHOW GRANTS FOR 'smartvolto_dev'@'localhost';
+SHOW GRANTS FOR 'voltosmart_dev'@'localhost';
 
 # Exit
 exit
@@ -57,7 +57,7 @@ In the project root, create or update `.env.local` (for development):
 
 ```env
 # Database (Local MySQL via XAMPP)
-DATABASE_URL="mysql://smartvolto_dev:your_secure_password_here@localhost:3306/smartvolto_portal_dev"
+DATABASE_URL="mysql://voltosmart_dev:your_secure_password_here@localhost:3306/voltosmart_portal_dev"
 
 # NextAuth Configuration
 NEXTAUTH_SECRET="generate-a-random-string-using-openssl-rand-base64-32"
@@ -196,7 +196,7 @@ model Announcement {
 
 ```bash
 # From project root
-cd "c:\VoltoDrive Apps\smartvolto portal"
+cd "c:\VoltoDrive Apps\voltosmart portal"
 
 # Generate and run migration
 npx prisma migrate dev --name init
@@ -204,11 +204,11 @@ npx prisma migrate dev --name init
 # When prompted, enter a migration name: "init"
 # This will:
 # 1. Create migration files in prisma/migrations/
-# 2. Apply the migration to smartvolto_portal_dev database
+# 2. Apply the migration to voltosmart_portal_dev database
 # 3. Generate Prisma Client
 
 # Verify the database was created
-mysql -u smartvolto_dev -p smartvolto_portal_dev
+mysql -u voltosmart_dev -p voltosmart_portal_dev
 # Show tables
 SHOW TABLES;
 # You should see: Account, Announcement, Session, User
@@ -332,10 +332,10 @@ Expected response:
 
 ---
 
-## PART 2: PRODUCTION DEPLOYMENT (smartvolto.voltodrive.com)
+## PART 2: PRODUCTION DEPLOYMENT (voltosmart.voltodrive.com)
 
 ### Prerequisites
-- SSH/control panel access to smartvolto.voltodrive.com hosting
+- SSH/control panel access to voltosmart.voltodrive.com hosting
 - Apache with mod_rewrite enabled
 - MySQL 8.0+ installed on server
 - Node.js 18+ installed on server
@@ -345,7 +345,7 @@ Expected response:
 
 SSH into your server:
 ```bash
-ssh user@smartvolto.voltodrive.com
+ssh user@voltosmart.voltodrive.com
 ```
 
 Connect to MySQL and create production database:
@@ -354,17 +354,17 @@ mysql -u root -p
 # Enter your server's root password
 
 # Create production database
-CREATE DATABASE smartvolto_portal_prod CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE voltosmart_portal_prod CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 # Create dedicated production user
-CREATE USER 'smartvolto_prod'@'localhost' IDENTIFIED BY 'strong_production_password_here';
+CREATE USER 'voltosmart_prod'@'localhost' IDENTIFIED BY 'strong_production_password_here';
 
 # Grant privileges
-GRANT ALL PRIVILEGES ON smartvolto_portal_prod.* TO 'smartvolto_prod'@'localhost';
+GRANT ALL PRIVILEGES ON voltosmart_portal_prod.* TO 'voltosmart_prod'@'localhost';
 FLUSH PRIVILEGES;
 
 # Verify
-SHOW GRANTS FOR 'smartvolto_prod'@'localhost';
+SHOW GRANTS FOR 'voltosmart_prod'@'localhost';
 exit
 ```
 
@@ -375,10 +375,10 @@ exit
 cd /var/www/
 
 # Clone or upload your project
-git clone https://github.com/voltodrive/smartvolto-portal.git smartvolto
+git clone https://github.com/voltodrive/voltosmart-portal.git voltosmart
 # OR upload via SFTP/SCP
 
-cd smartvolto
+cd voltosmart
 
 # Install dependencies
 npm install --production
@@ -393,11 +393,11 @@ Create `.env.production.local` on the server:
 
 ```env
 # Database (Production MySQL)
-DATABASE_URL="mysql://smartvolto_prod:strong_production_password_here@localhost:3306/smartvolto_portal_prod"
+DATABASE_URL="mysql://voltosmart_prod:strong_production_password_here@localhost:3306/voltosmart_portal_prod"
 
 # NextAuth Configuration
 NEXTAUTH_SECRET="generate-another-random-string-using-openssl"
-NEXTAUTH_URL="https://smartvolto.voltodrive.com"
+NEXTAUTH_URL="https://voltosmart.voltodrive.com"
 
 # Google OAuth
 GOOGLE_CLIENT_ID="your-production-google-client-id"
@@ -415,7 +415,7 @@ NODE_ENV="production"
 ### Step 4: Run Production Migration
 
 ```bash
-# From /var/www/smartvolto
+# From /var/www/voltosmart
 npx prisma migrate deploy
 
 # This applies all migrations to the production database without generating new ones
@@ -423,37 +423,37 @@ npx prisma migrate deploy
 
 ### Step 5: Configure Apache Virtual Host
 
-Create/update Apache configuration for smartvolto.voltodrive.com:
+Create/update Apache configuration for voltosmart.voltodrive.com:
 
 ```bash
-sudo nano /etc/apache2/sites-available/smartvolto.voltodrive.com.conf
+sudo nano /etc/apache2/sites-available/voltosmart.voltodrive.com.conf
 ```
 
 Add configuration:
 ```apache
 <VirtualHost *:80>
-    ServerName smartvolto.voltodrive.com
-    ServerAlias www.smartvolto.voltodrive.com
+    ServerName voltosmart.voltodrive.com
+    ServerAlias www.voltosmart.voltodrive.com
     ServerAdmin admin@voltodrive.com
 
     # Redirect HTTP to HTTPS
-    Redirect permanent / https://smartvolto.voltodrive.com/
+    Redirect permanent / https://voltosmart.voltodrive.com/
 </VirtualHost>
 
 <VirtualHost *:443>
-    ServerName smartvolto.voltodrive.com
-    ServerAlias www.smartvolto.voltodrive.com
+    ServerName voltosmart.voltodrive.com
+    ServerAlias www.voltosmart.voltodrive.com
     ServerAdmin admin@voltodrive.com
 
-    DocumentRoot /var/www/smartvolto/.next/static
+    DocumentRoot /var/www/voltosmart/.next/static
 
     # SSL Configuration (use Let's Encrypt)
     SSLEngine on
-    SSLCertificateFile /etc/letsencrypt/live/smartvolto.voltodrive.com/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/smartvolto.voltodrive.com/privkey.pem
+    SSLCertificateFile /etc/letsencrypt/live/voltosmart.voltodrive.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/voltosmart.voltodrive.com/privkey.pem
 
     # Enable mod_rewrite
-    <Directory /var/www/smartvolto>
+    <Directory /var/www/voltosmart>
         RewriteEngine On
         RewriteCond %{REQUEST_FILENAME} !-f
         RewriteCond %{REQUEST_FILENAME} !-d
@@ -477,14 +477,14 @@ Add configuration:
         AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
     </IfModule>
 
-    ErrorLog ${APACHE_LOG_DIR}/smartvolto.voltodrive.com-error.log
-    CustomLog ${APACHE_LOG_DIR}/smartvolto.voltodrive.com-access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/voltosmart.voltodrive.com-error.log
+    CustomLog ${APACHE_LOG_DIR}/voltosmart.voltodrive.com-access.log combined
 </VirtualHost>
 ```
 
 Enable the site and required modules:
 ```bash
-sudo a2ensite smartvolto.voltodrive.com.conf
+sudo a2ensite voltosmart.voltodrive.com.conf
 sudo a2enmod rewrite
 sudo a2enmod proxy
 sudo a2enmod proxy_http
@@ -507,11 +507,11 @@ sudo systemctl restart apache2
 sudo apt-get install certbot python3-certbot-apache
 
 # Obtain certificate
-sudo certbot certonly --apache -d smartvolto.voltodrive.com -d www.smartvolto.voltodrive.com
+sudo certbot certonly --apache -d voltosmart.voltodrive.com -d www.voltosmart.voltodrive.com
 
 # Follow prompts to verify domain ownership
 # Certificate will be installed at:
-# /etc/letsencrypt/live/smartvolto.voltodrive.com/
+# /etc/letsencrypt/live/voltosmart.voltodrive.com/
 
 # Set up auto-renewal
 sudo systemctl enable certbot.timer
@@ -525,23 +525,23 @@ Install PM2 globally:
 npm install -g pm2
 ```
 
-Create PM2 ecosystem file at `/var/www/smartvolto/ecosystem.config.js`:
+Create PM2 ecosystem file at `/var/www/voltosmart/ecosystem.config.js`:
 ```javascript
 // ecosystem.config.js
 module.exports = {
   apps: [{
-    name: 'smartvolto-portal',
+    name: 'voltosmart-portal',
     script: 'npm',
     args: 'start',
-    cwd: '/var/www/smartvolto',
+    cwd: '/var/www/voltosmart',
     instances: 'max',
     exec_mode: 'cluster',
     env: {
       NODE_ENV: 'production',
       PORT: 3000,
     },
-    error_file: '/var/log/smartvolto/error.log',
-    out_file: '/var/log/smartvolto/out.log',
+    error_file: '/var/log/voltosmart/error.log',
+    out_file: '/var/log/voltosmart/out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
   }],
 };
@@ -562,12 +562,12 @@ pm2 status
 Test the application:
 ```bash
 # Check if API is responding
-curl -I https://smartvolto.voltodrive.com/
+curl -I https://voltosmart.voltodrive.com/
 
 # Expected: HTTP/2 200
 ```
 
-Visit in browser: https://smartvolto.voltodrive.com/api/test-db
+Visit in browser: https://voltosmart.voltodrive.com/api/test-db
 
 ---
 
@@ -575,43 +575,43 @@ Visit in browser: https://smartvolto.voltodrive.com/api/test-db
 
 ### Automated Backups (Production)
 
-Create backup script at `/var/www/smartvolto/backup-db.sh`:
+Create backup script at `/var/www/voltosmart/backup-db.sh`:
 
 ```bash
 #!/bin/bash
-BACKUP_DIR="/var/backups/smartvolto"
+BACKUP_DIR="/var/backups/voltosmart"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-DB_NAME="smartvolto_portal_prod"
-DB_USER="smartvolto_prod"
+DB_NAME="voltosmart_portal_prod"
+DB_USER="voltosmart_prod"
 
 mkdir -p $BACKUP_DIR
 
 # Backup database
-mysqldump -u $DB_USER -p -h localhost $DB_NAME | gzip > $BACKUP_DIR/smartvolto_$TIMESTAMP.sql.gz
+mysqldump -u $DB_USER -p -h localhost $DB_NAME | gzip > $BACKUP_DIR/voltosmart_$TIMESTAMP.sql.gz
 
 # Keep only last 30 days of backups
-find $BACKUP_DIR -name "smartvolto_*.sql.gz" -mtime +30 -delete
+find $BACKUP_DIR -name "voltosmart_*.sql.gz" -mtime +30 -delete
 
-echo "Backup completed: $BACKUP_DIR/smartvolto_$TIMESTAMP.sql.gz"
+echo "Backup completed: $BACKUP_DIR/voltosmart_$TIMESTAMP.sql.gz"
 ```
 
 Make executable and add to crontab:
 ```bash
-chmod +x /var/www/smartvolto/backup-db.sh
+chmod +x /var/www/voltosmart/backup-db.sh
 
 # Schedule daily backup at 2 AM
 crontab -e
-# Add: 0 2 * * * /var/www/smartvolto/backup-db.sh
+# Add: 0 2 * * * /var/www/voltosmart/backup-db.sh
 ```
 
 ### Monitor Database Size
 
 ```bash
-mysql -u smartvolto_prod -p smartvolto_portal_prod
+mysql -u voltosmart_prod -p voltosmart_portal_prod
 # Check size
 SELECT table_name, ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb
 FROM information_schema.tables
-WHERE table_schema = 'smartvolto_portal_prod';
+WHERE table_schema = 'voltosmart_portal_prod';
 exit
 ```
 
@@ -622,7 +622,7 @@ exit
 - [ ] MySQL running in XAMPP
 - [ ] `.env.local` configured with DATABASE_URL
 - [ ] `npx prisma migrate dev` completed successfully
-- [ ] Database tables exist: `mysql -u smartvolto_dev -p smartvolto_portal_dev -e "SHOW TABLES;"`
+- [ ] Database tables exist: `mysql -u voltosmart_dev -p voltosmart_portal_dev -e "SHOW TABLES;"`
 - [ ] `npm run dev` server starts without errors
 - [ ] http://localhost:3000 loads without console errors
 - [ ] http://localhost:3000/api/test-db returns user/announcement counts
@@ -641,7 +641,7 @@ exit
 - [ ] SSL certificate obtained via Let's Encrypt
 - [ ] Apache modules enabled (rewrite, proxy, ssl, headers)
 - [ ] PM2 ecosystem.config.js created and started
-- [ ] https://smartvolto.voltodrive.com accessible
+- [ ] https://voltosmart.voltodrive.com accessible
 - [ ] Database backups automated via cron
 - [ ] Server logs monitored for errors
 
@@ -659,11 +659,11 @@ exit
 - Check: `npx prisma generate` to regenerate client
 
 ### "Permission denied" on production
-- Verify file ownership: `sudo chown -R www-data:www-data /var/www/smartvolto`
-- Check directory permissions: `chmod 755 /var/www/smartvolto`
+- Verify file ownership: `sudo chown -R www-data:www-data /var/www/voltosmart`
+- Check directory permissions: `chmod 755 /var/www/voltosmart`
 
 ### NextAuth fails on production
-- Verify NEXTAUTH_URL matches domain: `https://smartvolto.voltodrive.com`
+- Verify NEXTAUTH_URL matches domain: `https://voltosmart.voltodrive.com`
 - NEXTAUTH_SECRET must be 32+ characters
 - Google OAuth must have production URLs whitelisted in Google Cloud Console
 

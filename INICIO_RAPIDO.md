@@ -10,9 +10,9 @@
 ### 2. Cria o Utilizador da BD
 ```bash
 mysql -u root
-CREATE DATABASE smartvolto_portal_dev;
-CREATE USER 'smartvolto_dev'@'localhost' IDENTIFIED BY 'sua_palavra_passe';
-GRANT ALL PRIVILEGES ON smartvolto_portal_dev.* TO 'smartvolto_dev'@'localhost';
+CREATE DATABASE voltosmart_portal_dev;
+CREATE USER 'voltosmart_dev'@'localhost' IDENTIFIED BY 'sua_palavra_passe';
+GRANT ALL PRIVILEGES ON voltosmart_portal_dev.* TO 'voltosmart_dev'@'localhost';
 FLUSH PRIVILEGES;
 exit
 ```
@@ -20,7 +20,7 @@ exit
 ### 3. Configura as Variáveis de Ambiente
 Copia `.env.example` para `.env.local` e atualiza:
 ```env
-DATABASE_URL="mysql://smartvolto_dev:sua_palavra_passe@localhost:3306/smartvolto_portal_dev"
+DATABASE_URL="mysql://voltosmart_dev:sua_palavra_passe@localhost:3306/voltosmart_portal_dev"
 NEXTAUTH_SECRET="gera-com-este-comando-abaixo"
 NEXTAUTH_URL="http://localhost:3000"
 ```
@@ -75,7 +75,7 @@ Resposta esperada:
 2. ⏳ Implementar toggle de modo escuro
 3. ⏳ Criar página de Diretório de Pessoas
 4. ⏳ Integração com Google Workspace
-5. ⏳ Deploy em produção (smartvolto.voltodrive.com)
+5. ⏳ Deploy em produção (voltosmart.voltodrive.com)
 
 ---
 

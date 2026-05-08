@@ -3,3 +3,6 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/voltodrive/smartvolto-portal-repo
     - /bin/cp -R . $DEPLOYPATH
+    - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo/20/bin/activate && npm ci --omit=dev
+    - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo/20/bin/activate && npx prisma generate
+    - cd $DEPLOYPATH && mkdir -p tmp && touch tmp/restart.txt

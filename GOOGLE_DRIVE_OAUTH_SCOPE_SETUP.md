@@ -1,4 +1,4 @@
-# Configurar OAuth Scope da Google Drive API — SmartVolto Portal
+# Configurar OAuth Scope da Google Drive API — Volto Smart Portal
 
 Guia para adicionar o scope do Google Drive ao projeto no Google Cloud Console, permitindo que o portal aceda a ficheiros e pastas do Google Drive dos colaboradores.
 
@@ -6,7 +6,7 @@ Guia para adicionar o scope do Google Drive ao projeto no Google Cloud Console, 
 
 ## Porquê configurar o scope da Drive?
 
-O SmartVolto Portal precisa de aceder ao Google Drive para:
+O Volto Smart Portal precisa de aceder ao Google Drive para:
 - Listar ficheiros e pastas partilhadas dentro do domínio `@voltodrive.com`
 - Ler metadados de documentos (nome, tipo, proprietário, data de modificação)
 - Integrar o Drive com o diretório de Pessoas (ex: pasta de cada colaborador)
@@ -20,7 +20,7 @@ Para isso é necessário:
 
 ## Passo 1: Ativar a Google Drive API
 
-1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) e seleciona o projeto **SmartVolto Portal**
+1. Vai ao [Google Cloud Console](https://console.cloud.google.com/) e seleciona o projeto **Volto Smart Portal**
 2. No menu lateral esquerdo, clica em **"APIs e serviços"** → **"Biblioteca"**
 3. Na caixa de pesquisa, escreve **"Google Drive API"**
 4. Clica no resultado **"Google Drive API"** (publicado por Google)
@@ -41,7 +41,7 @@ Os scopes definem o nível de acesso que a aplicação tem ao Drive. Usa sempre 
 | `https://www.googleapis.com/auth/drive.file` | Apenas ficheiros criados pela app | Quando a app cria os próprios ficheiros |
 | `https://www.googleapis.com/auth/drive` | Acesso total | Evitar — só se precisares de escrita |
 
-**Recomendado para o SmartVolto Portal:** `https://www.googleapis.com/auth/drive.readonly`
+**Recomendado para o Volto Smart Portal:** `https://www.googleapis.com/auth/drive.readonly`
 
 ---
 
@@ -68,7 +68,7 @@ Este é o passo mais importante. Sem ele, a service account não consegue aceder
 1. Vai ao [Google Admin Console](https://admin.google.com/) — login com `admin@voltodrive.com`
 2. No menu lateral, navega para **"Segurança"** → **"Controlo de acesso e dados"** → **"Controlos de API"**
 3. Clica em **"GERIR DELEGAÇÃO EM TODO O DOMÍNIO"**
-4. Encontra a entrada da service account `smartvolto-directory-sync` (criada no guia anterior)
+4. Encontra a entrada da service account `voltosmart-directory-sync` (criada no guia anterior)
 5. Clica no ícone de **editar (lápis)** à direita dessa entrada
 6. No campo **"Âmbitos OAuth"**, adiciona o novo scope a seguir ao que já existe:
 

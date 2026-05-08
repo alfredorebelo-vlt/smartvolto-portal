@@ -11,7 +11,7 @@ AUTH_TRUST_HOST=true
 AUTH_GOOGLE_ID=<o mesmo do desenvolvimento>
 AUTH_GOOGLE_SECRET=<o mesmo do desenvolvimento>
 
-NEXTAUTH_URL=https://smartvolto.voltodrive.com
+NEXTAUTH_URL=https://voltosmart.voltodrive.com
 
 GOOGLE_WORKSPACE_ADMIN_EMAIL=admin@voltodrive.com
 GOOGLE_WORKSPACE_CLIENT_EMAIL=<service-account@....iam.gserviceaccount.com>

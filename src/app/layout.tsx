@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SmartVolto Portal",
+  title: "Volto Smart Portal",
   description: "Portal Interno VoltoDrive",
 };
 
