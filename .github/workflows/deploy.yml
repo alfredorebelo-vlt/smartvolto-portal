@@ -48,21 +48,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Criar ou resetar o branch deploy a partir do main
-          git checkout -B deploy
-
           # Remover .next do .gitignore para incluir o build
           sed -i '/.next/d' .gitignore
 
-          # Adicionar o build ao commit
+          # Adicionar todos os ficheiros incluindo o build
           git add .next/
           git add -A
 
           git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
 
-      - name: Push para branch deploy
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: deploy
-          force: true
+      - name: Push para branch deploy (fast-forward seguro)
+        run: |
+          # Apaga o branch deploy remoto e recria linearmente a partir do commit actual
+          git push origin --delete deploy || true
+          git push origin HEAD:deploy
