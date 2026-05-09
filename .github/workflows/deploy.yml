@@ -48,16 +48,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Criar branch orphan limpo — sem histórico partilhado com main
-          git checkout --orphan deploy-new
+          # Guardar o .next gerado antes de mudar de branch
+          cp -r .next /tmp/next-build
+
+          # Fazer checkout do branch deploy (incremental — fast-forward sempre)
+          git fetch origin deploy
+          git checkout deploy
+
+          # Copiar ficheiros do main para o deploy
+          git checkout main -- .
+
+          # Restaurar o .next do build
+          cp -r /tmp/next-build .next
 
           # Remover .next do .gitignore para incluir o build
           sed -i '/.next/d' .gitignore
 
-          # Adicionar todos os ficheiros (código + build)
+          # Commit incremental em cima do deploy anterior
           git add -A
+          git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
 
-          git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
-
-          # Forçar push — substitui o deploy anterior por este commit limpo
-          git push origin deploy-new:deploy --force
+          git push origin deploy
