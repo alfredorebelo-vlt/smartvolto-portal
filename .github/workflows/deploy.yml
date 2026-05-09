@@ -48,20 +48,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Guardar o .next gerado antes de mudar de branch
+          # Guardar o .next gerado e o .cpanel.yml antes de mudar de branch
           cp -r .next /tmp/next-build
+          cp .cpanel.yml /tmp/cpanel.yml
 
           # Fazer checkout do branch deploy (incremental — fast-forward sempre)
           git fetch origin deploy
           git checkout deploy
 
-          # Guardar .cpanel.yml antes de mudar de branch
-          cp .cpanel.yml /tmp/cpanel.yml
-
-          # Copiar ficheiros do main para o deploy
+          # Repor todos os ficheiros source do main
           git checkout main -- .
 
-          # Restaurar .cpanel.yml (git checkout não copia ficheiros ocultos de forma fiável)
+          # Forçar cópia do .cpanel.yml (sobrescreve o que veio do main)
           cp /tmp/cpanel.yml .cpanel.yml
 
           # Restaurar o .next do build
@@ -69,6 +67,10 @@ jobs:
 
           # Remover .next do .gitignore para incluir o build
           sed -i '/.next/d' .gitignore
+
+          # Verificar que .cpanel.yml está presente
+          echo "--- .cpanel.yml no deploy ---"
+          cat .cpanel.yml
 
           # Commit incremental em cima do deploy anterior
           git add -A
