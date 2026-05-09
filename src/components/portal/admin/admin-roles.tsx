@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Save, X, Users } from "lucide-react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { NAV_SECTIONS, SECTIONS } from "@/lib/sections";
 
@@ -135,7 +136,7 @@ export function AdminRoles() {
   }
 
   async function deleteRole(id: string) {
-    if (!confirm("Apagar este role? Os utilizadores ficam sem role atribuído.")) return;
+    if (!await confirm({ message: "Apagar este role? Os utilizadores ficam sem role atribuído.", variant: "danger", confirmLabel: "Apagar" })) return;
     setDeleting(id);
     await fetch(`/api/admin/roles?id=${id}`, { method: "DELETE" });
     await load();

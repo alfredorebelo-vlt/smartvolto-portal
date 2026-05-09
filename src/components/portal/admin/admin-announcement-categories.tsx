@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type Cat = {
@@ -59,7 +60,7 @@ export function AdminAnnouncementCategories() {
   }
 
   async function del(c: Cat) {
-    if (!confirm(`Eliminar categoria "${c.label}"? Os anúncios com esta categoria ficam sem categoria.`)) return;
+    if (!await confirm({ message: `Eliminar categoria "${c.label}"? Os anúncios com esta categoria ficam sem categoria.`, variant: "danger", confirmLabel: "Eliminar" })) return;
     await fetch(`/api/admin/announcement-categories/${c.id}`, { method: "DELETE" });
     setCats((prev) => prev.filter((x) => x.id !== c.id));
   }

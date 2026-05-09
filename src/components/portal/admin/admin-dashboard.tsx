@@ -6,6 +6,7 @@ import {
   LayoutDashboard, ChevronDown, ChevronUp, Save, X, Link,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { confirm } from "@/components/ui/confirm-dialog";
 import type { WidgetType } from "@/lib/dashboard/types";
 
 type QuickLink = { label: string; url: string; color: string };
@@ -61,7 +62,7 @@ export function AdminDashboard() {
   }
 
   async function deleteWidget(id: string) {
-    if (!confirm("Eliminar widget?")) return;
+    if (!await confirm({ message: "Eliminar widget?", variant: "danger", confirmLabel: "Eliminar" })) return;
     await fetch(`/api/admin/dashboard/${id}`, { method: "DELETE" });
     setWidgets((prev) => prev.filter((x) => x.id !== id));
   }

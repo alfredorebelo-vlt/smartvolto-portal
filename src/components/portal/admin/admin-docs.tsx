@@ -6,6 +6,7 @@ import {
   X, ChevronDown, ChevronRight, ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { confirm } from "@/components/ui/confirm-dialog";
 
 type Role = { id: string; name: string };
 
@@ -131,7 +132,7 @@ export function AdminDocs() {
   }
 
   async function deleteArea(area: DocArea) {
-    if (!confirm(`Apagar a área "${area.name}" e todos os seus documentos?`)) return;
+    if (!await confirm({ message: `Apagar a área "${area.name}" e todos os seus documentos?`, variant: "danger", confirmLabel: "Apagar" })) return;
     const res = await fetch(`/api/admin/docs/areas/${area.id}`, { method: "DELETE" });
     if (res.ok) {
       setAreas((prev) => prev.filter((a) => a.id !== area.id));
@@ -194,7 +195,7 @@ export function AdminDocs() {
   }
 
   async function deleteEntry(entry: DocEntry) {
-    if (!confirm(`Apagar "${entry.title}"?`)) return;
+    if (!await confirm({ message: `Apagar "${entry.title}"?`, variant: "danger", confirmLabel: "Apagar" })) return;
     const res = await fetch(`/api/admin/docs/entries/${entry.id}`, { method: "DELETE" });
     if (res.ok) {
       setAreaEntries((prev) => ({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, GripVertical,
   Upload, X, Save, ChevronUp, ChevronDown, LayoutGrid, ShieldCheck,
@@ -59,7 +60,7 @@ export function AdminTools() {
   }
 
   async function deleteTool(id: string) {
-    if (!confirm("Eliminar ferramenta permanentemente?")) return;
+    if (!await confirm({ message: "Eliminar ferramenta permanentemente?", variant: "danger", confirmLabel: "Eliminar" })) return;
     await fetch(`/api/admin/tools/${id}`, { method: "DELETE" });
     setTools((prev) => prev.filter((x) => x.id !== id));
   }

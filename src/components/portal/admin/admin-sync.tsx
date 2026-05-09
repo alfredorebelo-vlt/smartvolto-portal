@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, CheckCircle, AlertCircle, Users, BookOpen } from "lucide-react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type SyncState = "idle" | "running" | "ok" | "error";
@@ -38,7 +39,7 @@ export function AdminSync() {
   }
 
   async function runSeedManual(force: boolean) {
-    if (force && !confirm("Isto vai arquivar todos os artigos do manual existentes (preserva histórico) e re-popular a partir do PDF v1.1. Continuar?")) {
+    if (force && !await confirm({ message: "Isto vai arquivar todos os artigos do manual existentes (preserva histórico) e re-popular a partir do PDF v1.1. Continuar?", variant: "warning", confirmLabel: "Continuar" })) {
       return;
     }
     setSeedState("running");

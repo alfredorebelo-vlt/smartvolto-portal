@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Pencil, Check, X, Calendar, GripVertical, ToggleLeft, ToggleRight } from "lucide-react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type SharedCalendar = {
@@ -89,7 +90,7 @@ export function AdminCalendars() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Eliminar este calendário?")) return;
+    if (!await confirm({ message: "Eliminar este calendário?", variant: "danger", confirmLabel: "Eliminar" })) return;
     const res = await fetch(`/api/admin/calendars/${id}`, { method: "DELETE" });
     if (res.ok) setCalendars((prev) => prev.filter((c) => c.id !== id));
     else setError("Erro ao eliminar");

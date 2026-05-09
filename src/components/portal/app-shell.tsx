@@ -16,6 +16,7 @@ import { Tools } from "./tools";
 import { Docs } from "./docs";
 import { Placeholder } from "./placeholder";
 import { Footer } from "./footer";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { NavSectionKey } from "@/lib/sections";
 
@@ -107,6 +108,7 @@ export function AppShell() {
         </main>
         <Footer />
       </div>
+      <ConfirmDialogProvider />
     </div>
   );
 }

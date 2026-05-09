@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Megaphone, Pin, X } from "lucide-react";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useSession } from "next-auth/react";
@@ -116,7 +117,7 @@ export function Feed() {
   }
 
   async function deleteAnnouncement(id: string) {
-    if (!confirm("Apagar este anúncio?")) return;
+    if (!await confirm({ message: "Apagar este anúncio?", variant: "danger", confirmLabel: "Apagar" })) return;
     setDeletingId(id);
     const res = await fetch(`/api/announcements/${id}`, { method: "DELETE" });
     if (res.ok) setItems((prev) => prev.filter((a) => a.id !== id));

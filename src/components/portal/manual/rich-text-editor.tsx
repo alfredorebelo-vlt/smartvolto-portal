@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
+import { prompt } from "@/components/ui/confirm-dialog";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -48,9 +49,9 @@ export function RichTextEditor({ value, onChange, placeholder }: Props) {
 
   if (!editor) return null;
 
-  function setLink() {
+  async function setLink() {
     const previous = editor!.getAttributes("link").href;
-    const url = window.prompt("URL", previous ?? "https://");
+    const url = await prompt({ message: "URL do link", defaultValue: previous ?? "https://" });
     if (url === null) return;
     if (url === "") {
       editor!.chain().focus().extendMarkRange("link").unsetLink().run();

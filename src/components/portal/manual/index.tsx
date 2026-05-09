@@ -6,6 +6,7 @@ import {
   X, Folder, FolderPlus, Save, Clock, RotateCcw, Search, GripVertical,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { confirm } from "@/components/ui/confirm-dialog";
 import { SECTIONS } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 import { RichTextEditor } from "./rich-text-editor";
@@ -135,7 +136,7 @@ export function Manual() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Arquivar este artigo? O histórico fica preservado.")) return;
+    if (!await confirm({ message: "Arquivar este artigo? O histórico fica preservado.", variant: "warning", confirmLabel: "Arquivar" })) return;
     const res = await fetch(`/api/manual/articles/${id}`, { method: "DELETE" });
     if (res.ok) {
       await loadData();
@@ -1034,7 +1035,7 @@ function ArticleHistory({
   }, [article.id]);
 
   async function restore(versionId: string) {
-    if (!confirm("Restaurar esta versão? Vai criar uma nova versão com este conteúdo.")) return;
+    if (!await confirm({ message: "Restaurar esta versão? Vai criar uma nova versão com este conteúdo.", variant: "warning", confirmLabel: "Restaurar" })) return;
     setRestoring(true);
     const res = await fetch(`/api/manual/articles/${article.id}/restore`, {
       method: "POST",
