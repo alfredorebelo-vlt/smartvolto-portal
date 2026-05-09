@@ -15,6 +15,7 @@ import { Admin } from "./admin";
 import { Tools } from "./tools";
 import { Docs } from "./docs";
 import { Placeholder } from "./placeholder";
+import { Footer } from "./footer";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { NavSectionKey } from "@/lib/sections";
 
@@ -104,6 +105,7 @@ export function AppShell() {
             <Placeholder section={active} />
           )}
         </main>
+        <Footer />
       </div>
     </div>
   );
