@@ -55,8 +55,9 @@ jobs:
           git fetch origin deploy
           git checkout deploy
 
-          # Copiar ficheiros do main para o deploy
+          # Copiar ficheiros do main para o deploy (incluindo ficheiros ocultos)
           git checkout main -- .
+          git checkout main -- .cpanel.yml 2>/dev/null || true
 
           # Restaurar o .next do build
           cp -r /tmp/next-build .next
