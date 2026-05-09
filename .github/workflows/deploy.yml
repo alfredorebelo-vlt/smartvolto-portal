@@ -88,3 +88,10 @@ jobs:
           git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
 
           git push origin deploy
+
+      - name: Reiniciar aplicação em produção
+        run: |
+          sleep 10
+          curl -s -X POST https://voltosmart.voltodrive.com/api/restart \
+            -H "x-restart-token: ${{ secrets.RESTART_TOKEN }}" \
+            || echo "Restart endpoint não respondeu — reinicia manualmente no cPanel"
