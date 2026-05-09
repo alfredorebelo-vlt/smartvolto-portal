@@ -70,10 +70,18 @@ jobs:
 
           # Verificar que .cpanel.yml está presente
           echo "--- .cpanel.yml no deploy ---"
-          cat .cpanel.yml
+          cat .cpanel.yml || echo "FICHEIRO NAO EXISTE"
+          echo "--- git status ---"
+          git status
+          echo "--- git ls-files .cpanel.yml ---"
+          git ls-files .cpanel.yml
+          echo "--- git check-ignore .cpanel.yml ---"
+          git check-ignore -v .cpanel.yml || echo "NAO IGNORADO"
 
-          # Forçar inclusão do .cpanel.yml (ficheiro oculto pode ser ignorado pelo -A)
+          # Forçar inclusão do .cpanel.yml
           git add -f .cpanel.yml
+          echo "--- staged files ---"
+          git diff --cached --name-only | grep cpanel || echo "cpanel NAO STAGED"
 
           # Commit incremental em cima do deploy anterior
           git add -A
