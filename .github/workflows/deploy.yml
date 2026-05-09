@@ -72,6 +72,9 @@ jobs:
           echo "--- .cpanel.yml no deploy ---"
           cat .cpanel.yml
 
+          # Forçar inclusão do .cpanel.yml (ficheiro oculto pode ser ignorado pelo -A)
+          git add -f .cpanel.yml
+
           # Commit incremental em cima do deploy anterior
           git add -A
           git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
