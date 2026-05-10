@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LayoutGrid, ExternalLink, Search, X } from "lucide-react";
+import { LayoutGrid, ExternalLink, Search, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 type ToolMeta = {
   id: string;
@@ -31,6 +32,7 @@ export function Tools() {
   const [active, setActive] = useState<ToolMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -92,8 +94,55 @@ export function Tools() {
   }
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar */}
+    <div className="flex h-full flex-col">
+      {/* Mobile trigger */}
+      <button
+        onClick={() => setSheetOpen(true)}
+        className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 py-3 lg:hidden"
+      >
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="size-4 text-[var(--muted-foreground)]" />
+          <span className="text-sm font-medium text-[var(--foreground)]">
+            {active?.name ?? "Seleciona uma ferramenta"}
+          </span>
+        </div>
+        <ChevronDown className="size-4 text-[var(--muted-foreground)]" />
+      </button>
+
+      {/* Bottom sheet mobile */}
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Ferramentas">
+        <div className="p-2">
+          <div className="relative mb-2 px-1">
+            <Search className="absolute left-3.5 top-1/2 size-3.5 -translate-y-1/2 text-[var(--muted-foreground)]" />
+            <input
+              type="text"
+              placeholder="Pesquisar…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--muted)] py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+            />
+          </div>
+          {filtered.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { setActive(t); setSearch(""); setSheetOpen(false); }}
+              className={cn(
+                "flex w-full flex-col gap-0.5 rounded-lg px-3 py-3 text-left transition-colors",
+                active?.id === t.id ? "bg-[var(--vd-blue-500)]/10 font-semibold text-[var(--vd-blue-500)]" : "hover:bg-[var(--muted)]"
+              )}
+            >
+              <span className="text-sm font-medium">{t.name}</span>
+              {t.description && (
+                <span className="text-xs text-[var(--muted-foreground)] line-clamp-2">{t.description}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      <div className="flex flex-1 overflow-hidden">
+      {/* Sidebar desktop */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--card)] lg:flex">
         {/* Header */}
         <div className="border-b border-[var(--border)] px-4 py-3">
@@ -179,7 +228,7 @@ export function Tools() {
       <div className="flex flex-1 flex-col overflow-hidden">
         {active ? (
           <>
-            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 py-2.5">
+            <div className="hidden items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 py-2.5 lg:flex">
               <span className="text-sm font-semibold text-[var(--foreground)]">{active.name}</span>
               <a
                 href={`/api/tools/${active.slug}`}
@@ -202,6 +251,7 @@ export function Tools() {
             Seleciona uma ferramenta
           </div>
         )}
+      </div>
       </div>
     </div>
   );

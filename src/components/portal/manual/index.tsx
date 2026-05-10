@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus, Pencil, Trash2, BookOpen, History, ChevronRight,
-  X, Folder, FolderPlus, Save, Clock, RotateCcw, Search, GripVertical,
+  X, Folder, FolderPlus, Save, Clock, RotateCcw, Search, GripVertical, ChevronDown,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { confirm } from "@/components/ui/confirm-dialog";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { SECTIONS } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 import { RichTextEditor } from "./rich-text-editor";
@@ -61,6 +62,7 @@ export function Manual() {
   const [mode, setMode] = useState<Mode>("view");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -95,6 +97,7 @@ export function Manual() {
   function handleSelectArticle(id: string) {
     setActiveArticleId(id);
     setMode("view");
+    setSheetOpen(false);
   }
 
   function handleNew() {
@@ -185,8 +188,47 @@ export function Manual() {
     await loadData();
   }
 
+  const activeTitle = activeArticle?.currentVersion?.title ?? null;
+
   return (
-    <div className="flex h-full bg-[var(--muted)]">
+    <div className="flex h-full flex-col bg-[var(--muted)]">
+      {/* Mobile trigger */}
+      <button
+        onClick={() => setSheetOpen(true)}
+        className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 py-3 lg:hidden"
+      >
+        <div className="flex items-center gap-2">
+          <BookOpen className="size-4 text-[var(--muted-foreground)]" />
+          <span className="text-sm font-medium text-[var(--foreground)]">
+            {activeTitle ?? "Manual de operações"}
+          </span>
+        </div>
+        <ChevronDown className="size-4 text-[var(--muted-foreground)]" />
+      </button>
+
+      {/* Bottom sheet mobile */}
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Manual de operações">
+        <ManualSidebar
+          categories={categories}
+          articles={displayedArticles}
+          allArticles={articles}
+          activeArticleId={activeArticleId}
+          activeCategoryId={activeCategoryId}
+          canWrite={canWrite}
+          search={search}
+          onSearch={setSearch}
+          onSelectArticle={handleSelectArticle}
+          onSelectCategory={(id) => { setActiveCategoryId(id); setSearch(""); setSheetOpen(false); }}
+          onNew={() => { handleNew(); setSheetOpen(false); }}
+          onCategoriesChange={loadData}
+          onReorderArticles={handleReorderArticles}
+          onReorderCategories={handleReorderCategories}
+          onMoveArticle={handleMoveArticle}
+          loading={loading}
+        />
+      </BottomSheet>
+
+      <div className="flex flex-1 overflow-hidden">
       <ManualSidebar
         categories={categories}
         articles={displayedArticles}
@@ -236,6 +278,7 @@ export function Manual() {
         ) : (
           <EmptyState canWrite={canWrite} onNew={handleNew} />
         )}
+      </div>
       </div>
     </div>
   );
