@@ -49,11 +49,12 @@ type Article = {
   currentVersion: Version | null;
 };
 
-type Mode = "view" | "edit" | "create" | "history";
+type Mode = "view" | "edit" | "edit-overwrite" | "create" | "history";
 
 export function Manual() {
-  const { isAdmin, can } = usePermissions();
-  const canWrite = isAdmin || can(SECTIONS.MANUAL_WRITE);
+  const { isAdmin: adminUser, can } = usePermissions();
+  const canWrite = adminUser || can(SECTIONS.MANUAL_WRITE);
+  const isAdmin = adminUser;
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -111,6 +112,7 @@ export function Manual() {
     content: string;
     categoryId: string;
     changeNote?: string;
+    overwrite?: boolean;
   }) {
     if (payload.id) {
       const res = await fetch(`/api/manual/articles/${payload.id}`, {
@@ -141,6 +143,20 @@ export function Manual() {
   async function handleDelete(id: string) {
     if (!await confirm({ message: "Arquivar este artigo? O histórico fica preservado.", variant: "warning", confirmLabel: "Arquivar" })) return;
     const res = await fetch(`/api/manual/articles/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      await loadData();
+      setActiveArticleId(null);
+      setMode("view");
+    }
+  }
+
+  async function handleHardDelete(id: string) {
+    if (!await confirm({
+      message: "Apagar permanentemente este artigo e TODO o seu histórico? Esta ação é irreversível.",
+      variant: "danger",
+      confirmLabel: "Apagar definitivamente",
+    })) return;
+    const res = await fetch(`/api/manual/articles/${id}?hard=true`, { method: "DELETE" });
     if (res.ok) {
       await loadData();
       setActiveArticleId(null);
@@ -250,10 +266,11 @@ export function Manual() {
       />
 
       <div className="flex-1 overflow-auto">
-        {mode === "create" || mode === "edit" ? (
+        {mode === "create" || mode === "edit" || mode === "edit-overwrite" ? (
           <ArticleEditor
-            article={mode === "edit" ? activeArticle : null}
+            article={mode === "edit" || mode === "edit-overwrite" ? activeArticle : null}
             categories={categories}
+            overwriteMode={mode === "edit-overwrite"}
             onCancel={() => {
               setMode(activeArticle ? "view" : "view");
               if (mode === "create") setActiveArticleId(null);
@@ -271,9 +288,12 @@ export function Manual() {
           <ArticleViewer
             article={activeArticle}
             canWrite={canWrite}
+            isAdmin={isAdmin}
             search={searchLower}
             onEdit={() => setMode("edit")}
+            onEditOverwrite={() => setMode("edit-overwrite")}
             onDelete={() => handleDelete(activeArticle.id)}
+            onHardDelete={() => handleHardDelete(activeArticle.id)}
             onShowHistory={() => setMode("history")}
           />
         ) : (
@@ -829,13 +849,16 @@ function SidebarSkeleton() {
 /* ---------- Article Viewer ---------- */
 
 function ArticleViewer({
-  article, canWrite, search, onEdit, onDelete, onShowHistory,
+  article, canWrite, isAdmin, search, onEdit, onEditOverwrite, onDelete, onHardDelete, onShowHistory,
 }: {
   article: Article;
   canWrite: boolean;
+  isAdmin: boolean;
   search: string;
   onEdit: () => void;
+  onEditOverwrite: () => void;
   onDelete: () => void;
+  onHardDelete: () => void;
   onShowHistory: () => void;
 }) {
   const v = article.currentVersion;
@@ -877,6 +900,16 @@ function ArticleViewer({
               >
                 <Pencil className="size-3.5" /> Editar
               </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={onEditOverwrite}
+                  className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
+                  title="Editar sem criar versão no histórico"
+                >
+                  <Pencil className="size-3.5" /> Editar sem versão
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onDelete}
@@ -885,6 +918,16 @@ function ArticleViewer({
               >
                 <Trash2 className="size-3.5" />
               </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={onHardDelete}
+                  className="grid size-7 place-items-center rounded-lg border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                  title="Apagar permanentemente (sem histórico)"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
             </>
           )}
         </div>
@@ -932,10 +975,11 @@ function highlightHtml(html: string, query: string): string {
 /* ---------- Article Editor ---------- */
 
 function ArticleEditor({
-  article, categories, onCancel, onSave,
+  article, categories, overwriteMode, onCancel, onSave,
 }: {
   article: Article | null;
   categories: Category[];
+  overwriteMode?: boolean;
   onCancel: () => void;
   onSave: (payload: {
     id?: string;
@@ -943,6 +987,7 @@ function ArticleEditor({
     content: string;
     categoryId: string;
     changeNote?: string;
+    overwrite?: boolean;
   }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(article?.currentVersion?.title ?? "");
@@ -959,7 +1004,8 @@ function ArticleEditor({
       title: title.trim(),
       content,
       categoryId,
-      changeNote: changeNote.trim() || undefined,
+      changeNote: overwriteMode ? undefined : (changeNote.trim() || undefined),
+      overwrite: overwriteMode || undefined,
     });
     setSaving(false);
   }
@@ -967,7 +1013,14 @@ function ArticleEditor({
   return (
     <div className="mx-auto max-w-3xl p-6 sm:p-8 lg:p-10">
       <div className="mb-4 flex items-center justify-between">
-        <div className="vd-eyebrow">{article ? "Editar artigo" : "Novo artigo"}</div>
+        <div className="flex items-center gap-2">
+          <div className="vd-eyebrow">{article ? (overwriteMode ? "Editar sem versão" : "Editar artigo") : "Novo artigo"}</div>
+          {overwriteMode && (
+            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+              Sem histórico
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={onCancel}
@@ -1014,19 +1067,26 @@ function ArticleEditor({
           <RichTextEditor value={content} onChange={setContent} />
         </div>
 
-        <div>
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-            Nota de alteração <span className="text-[var(--muted-foreground)]/60">(opcional, para auditoria)</span>
-          </label>
-          <input
-            type="text"
-            value={changeNote}
-            onChange={(e) => setChangeNote(e.target.value)}
-            placeholder="ex: Atualizado processo de onboarding após feedback do RH"
-            maxLength={500}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-          />
-        </div>
+        {!overwriteMode && (
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+              Nota de alteração <span className="text-[var(--muted-foreground)]/60">(opcional, para auditoria)</span>
+            </label>
+            <input
+              type="text"
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
+              placeholder="ex: Atualizado processo de onboarding após feedback do RH"
+              maxLength={500}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+            />
+          </div>
+        )}
+        {overwriteMode && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            Esta edição substitui diretamente o conteúdo atual sem criar uma nova entrada no histórico de versões.
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
           <button
@@ -1043,7 +1103,7 @@ function ArticleEditor({
             className="flex items-center gap-1.5 rounded-lg bg-[var(--vd-blue-500)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             <Save className="size-3.5" />
-            {saving ? "A guardar…" : article ? "Guardar nova versão" : "Publicar"}
+            {saving ? "A guardar…" : article ? (overwriteMode ? "Guardar (sem versão)" : "Guardar nova versão") : "Publicar"}
           </button>
         </div>
       </div>

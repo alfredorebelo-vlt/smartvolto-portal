@@ -12,6 +12,12 @@ function canWrite(session: Session | null): boolean {
   return ((u.sections as string[]) ?? []).includes("manual.write");
 }
 
+function isAdmin(session: Session | null): boolean {
+  if (!session?.user) return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return !!(session.user as any).isAdmin;
+}
+
 // GET — detalhe completo do artigo + versão atual
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = (await auth()) as Session | null;
@@ -35,7 +41,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ article });
 }
 
-// PATCH — cria nova versão (não sobrescreve)
+// PATCH — cria nova versão (padrão) ou substitui diretamente a versão atual sem histórico (overwrite=true, admin only)
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = (await auth()) as Session | null;
   if (!canWrite(session)) return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
@@ -46,6 +52,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     content?: string;
     categoryId?: string;
     changeNote?: string;
+    overwrite?: boolean;
   };
 
   const article = await prisma.manualArticle.findUnique({
@@ -76,7 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
   }
 
-  // Título/conteúdo → nova versão
+  // Título/conteúdo → nova versão (padrão) ou substituição direta sem histórico (overwrite, admin only)
   const titleChanged = body.title !== undefined && body.title !== article.currentVersion?.title;
   const contentChanged = body.content !== undefined && body.content !== article.currentVersion?.content;
 
@@ -85,33 +92,56 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Título e conteúdo obrigatórios" }, { status: 400 });
     }
 
-    const newVersion = await prisma.manualArticleVersion.create({
-      data: {
-        articleId: id,
-        title: body.title.trim(),
-        content: body.content,
-        changeNote: body.changeNote?.trim() || null,
-        authorId: dbUser.id,
-      },
-    });
+    if (body.overwrite && isAdmin(session)) {
+      // Substituição direta: atualiza a versão atual sem criar nova entrada no histórico
+      await prisma.manualArticleVersion.update({
+        where: { id: article.currentVersionId! },
+        data: {
+          title: body.title.trim(),
+          content: body.content,
+        },
+      });
 
-    await prisma.manualArticle.update({
-      where: { id },
-      data: { currentVersionId: newVersion.id },
-    });
+      await logAudit({
+        session,
+        action: "UPDATE",
+        entity: "Article",
+        entityId: id,
+        meta: {
+          versionId: article.currentVersionId,
+          title: body.title.trim(),
+          overwrite: true,
+        },
+      });
+    } else {
+      const newVersion = await prisma.manualArticleVersion.create({
+        data: {
+          articleId: id,
+          title: body.title.trim(),
+          content: body.content,
+          changeNote: body.changeNote?.trim() || null,
+          authorId: dbUser.id,
+        },
+      });
 
-    await logAudit({
-      session,
-      action: "UPDATE",
-      entity: "Article",
-      entityId: id,
-      meta: {
-        versionId: newVersion.id,
-        previousVersionId: article.currentVersionId,
-        title: body.title.trim(),
-        changeNote: body.changeNote?.trim() || null,
-      },
-    });
+      await prisma.manualArticle.update({
+        where: { id },
+        data: { currentVersionId: newVersion.id },
+      });
+
+      await logAudit({
+        session,
+        action: "UPDATE",
+        entity: "Article",
+        entityId: id,
+        meta: {
+          versionId: newVersion.id,
+          previousVersionId: article.currentVersionId,
+          title: body.title.trim(),
+          changeNote: body.changeNote?.trim() || null,
+        },
+      });
+    }
   }
 
   const updated = await prisma.manualArticle.findUnique({
@@ -129,30 +159,51 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json({ article: updated });
 }
 
-// DELETE — soft delete (mantém histórico)
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// DELETE — soft delete por padrão; hard delete permanente (sem histórico) com ?hard=true, apenas admins
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = (await auth()) as Session | null;
   if (!canWrite(session)) return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
 
   const { id } = await params;
+  const hard = req.nextUrl.searchParams.get("hard") === "true";
+
+  if (hard && !isAdmin(session)) {
+    return NextResponse.json({ error: "Apenas administradores podem apagar permanentemente" }, { status: 403 });
+  }
+
   const article = await prisma.manualArticle.findUnique({
     where: { id },
     include: { currentVersion: { select: { title: true } } },
   });
   if (!article) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
 
-  await prisma.manualArticle.update({
-    where: { id },
-    data: { archivedAt: new Date() },
-  });
+  if (hard) {
+    // Apaga todas as versões e depois o artigo permanentemente
+    await prisma.manualArticle.update({ where: { id }, data: { currentVersionId: null } });
+    await prisma.manualArticleVersion.deleteMany({ where: { articleId: id } });
+    await prisma.manualArticle.delete({ where: { id } });
 
-  await logAudit({
-    session,
-    action: "DELETE",
-    entity: "Article",
-    entityId: id,
-    meta: { title: article.currentVersion?.title, soft: true },
-  });
+    await logAudit({
+      session,
+      action: "DELETE",
+      entity: "Article",
+      entityId: id,
+      meta: { title: article.currentVersion?.title, hard: true },
+    });
+  } else {
+    await prisma.manualArticle.update({
+      where: { id },
+      data: { archivedAt: new Date() },
+    });
+
+    await logAudit({
+      session,
+      action: "DELETE",
+      entity: "Article",
+      entityId: id,
+      meta: { title: article.currentVersion?.title, soft: true },
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
