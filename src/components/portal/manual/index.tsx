@@ -209,6 +209,7 @@ export function Manual() {
       {/* Bottom sheet mobile */}
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Manual de operações">
         <ManualSidebar
+          inSheet
           categories={categories}
           articles={displayedArticles}
           allArticles={articles}
@@ -293,7 +294,7 @@ const DT_CATEGORY = "application/x-manual-category";
 function ManualSidebar({
   categories, articles, allArticles, activeArticleId, activeCategoryId, canWrite,
   search, onSearch, onSelectArticle, onSelectCategory, onNew, onCategoriesChange,
-  onReorderArticles, onReorderCategories, onMoveArticle, loading,
+  onReorderArticles, onReorderCategories, onMoveArticle, loading, inSheet,
 }: {
   categories: Category[];
   articles: Article[];
@@ -311,6 +312,7 @@ function ManualSidebar({
   onReorderCategories: (ids: string[]) => void;
   onMoveArticle: (articleId: string, toCategoryId: string) => void;
   loading: boolean;
+  inSheet?: boolean;
 }) {
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName, setNewCatName] = useState("");
@@ -406,7 +408,7 @@ function ManualSidebar({
   const isSearching = search.trim().length > 0;
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--card)] lg:flex">
+    <aside className={inSheet ? "flex w-full flex-col bg-[var(--card)]" : "hidden w-72 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--card)] lg:flex"}>
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-3">
         <div className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Manual</div>

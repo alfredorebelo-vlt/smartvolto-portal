@@ -119,25 +119,45 @@ export function Tools() {
               placeholder="Pesquisar…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--muted)] py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--muted)] py-2 pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </div>
-          {filtered.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => { setActive(t); setSearch(""); setSheetOpen(false); }}
-              className={cn(
-                "flex w-full flex-col gap-0.5 rounded-lg px-3 py-3 text-left transition-colors",
-                active?.id === t.id ? "bg-[var(--vd-blue-500)]/10 font-semibold text-[var(--vd-blue-500)]" : "hover:bg-[var(--muted)]"
-              )}
-            >
-              <span className="text-sm font-medium">{t.name}</span>
-              {t.description && (
-                <span className="text-xs text-[var(--muted-foreground)] line-clamp-2">{t.description}</span>
-              )}
-            </button>
-          ))}
+          {q && filtered.length > 0 && (
+            <div className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+              {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
+            </div>
+          )}
+          {filtered.length === 0 ? (
+            <div className="px-2 py-6 text-center text-xs text-[var(--muted-foreground)]">
+              Sem resultados para <strong>&ldquo;{search}&rdquo;</strong>
+            </div>
+          ) : (
+            filtered.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => { setActive(t); setSearch(""); setSheetOpen(false); }}
+                className={cn(
+                  "flex w-full flex-col gap-0.5 rounded-lg px-3 py-3 text-left transition-colors",
+                  active?.id === t.id && !q ? "bg-[var(--vd-blue-500)]/10 font-semibold text-[var(--vd-blue-500)]" : "hover:bg-[var(--muted)]"
+                )}
+              >
+                <span className="text-sm font-medium">{highlight(t.name, search)}</span>
+                {t.description && (
+                  <span className="text-xs text-[var(--muted-foreground)] line-clamp-2">{highlight(t.description, search)}</span>
+                )}
+              </button>
+            ))
+          )}
         </div>
       </BottomSheet>
 

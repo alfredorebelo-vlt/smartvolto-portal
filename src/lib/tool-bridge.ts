@@ -1,4 +1,30 @@
 /**
+ * Normaliza os headings de um fragmento HTML para que o nível mínimo
+ * seja sempre h2. Exemplo: se o tool usa h1/h2/h3, são promovidos para
+ * h2/h3/h4 — assim o h1 fica reservado para o portal e a hierarquia
+ * de navegação é consistente entre ferramentas.
+ */
+export function normalizeHeadings(html: string): string {
+  // Encontra o nível mínimo de heading presente (só dentro do <body> se existir)
+  const body = html.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] ?? html;
+  const matches = body.match(/<h([1-6])[\s>]/gi) ?? [];
+  if (matches.length === 0) return html;
+
+  const levels = matches.map((m) => parseInt(m.replace(/<h/i, ""), 10));
+  const minLevel = Math.min(...levels);
+
+  // Se o mínimo já é h2 ou superior, nada a fazer
+  if (minLevel >= 2) return html;
+
+  // Shift: eleva todos os headings de forma a que o mínimo fique em h2
+  const shift = 2 - minLevel; // ex: minLevel=1 → shift=1
+  return html.replace(/<(\/?)h([1-6])(\s|>)/gi, (_, slash, n, rest) => {
+    const newLevel = Math.min(parseInt(n, 10) + shift, 6);
+    return `<${slash}h${newLevel}${rest}`;
+  });
+}
+
+/**
  * Injeta um bridge de persistência em qualquer HTML de ferramenta.
  *
  * O HTML da ferramenta pode chamar:

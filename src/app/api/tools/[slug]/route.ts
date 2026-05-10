@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { injectBridge } from "@/lib/tool-bridge";
+import { injectBridge, normalizeHeadings } from "@/lib/tool-bridge";
 
 // GET — devolve o HTML da ferramenta se o utilizador tiver acesso
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   const hasAccess = isAdmin || ids.length === 0 || (userRoleId && ids.includes(userRoleId));
   if (!hasAccess) return new NextResponse("Sem permissão", { status: 403 });
 
-  return new NextResponse(injectBridge(tool.content, slug), {
+  return new NextResponse(injectBridge(normalizeHeadings(tool.content), slug), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       // Permite iframe apenas do mesmo origem (o portal)

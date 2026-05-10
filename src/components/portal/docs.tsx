@@ -4,11 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import {
   FolderOpen, FileText, ExternalLink, Clock, Search, X,
   FileSpreadsheet, FileType, Presentation, File, AlertCircle,
-  ChevronRight, ChevronLeft, Folder, Home, HardDrive, Users,
+  ChevronRight, ChevronLeft, ChevronDown, Folder, Home, HardDrive, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { SECTIONS } from "@/lib/sections";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 /* ─── Types ─── */
 
@@ -130,6 +131,7 @@ function LibraryView() {
   const [activeArea, setActiveArea] = useState<string | null>(null);
   const [activeEntry, setActiveEntry] = useState<DocEntry | null>(null);
   const [search, setSearch] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/docs/library")
@@ -164,9 +166,60 @@ function LibraryView() {
     );
   }
 
+  const activeAreaName = areas.find((a) => a.id === activeArea)?.name ?? "Seleciona uma área";
+
   return (
+    <>
+      {/* Mobile trigger */}
+      <button
+        onClick={() => setSheetOpen(true)}
+        className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 lg:hidden"
+      >
+        <div className="flex items-center gap-2">
+          <FolderOpen className="size-4 text-[var(--muted-foreground)]" />
+          <span className="text-sm font-medium text-[var(--foreground)]">
+            {search ? `Pesquisa: "${search}"` : activeAreaName}
+          </span>
+        </div>
+        <ChevronDown className="size-4 text-[var(--muted-foreground)]" />
+      </button>
+
+      {/* Bottom sheet mobile */}
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Documentos">
+        <div className="p-3 flex flex-col gap-1">
+          {/* Search */}
+          <div className="relative mb-2">
+            <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--muted-foreground)]" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Pesquisar…"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] py-2 pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30" />
+            {search && (
+              <button type="button" onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          {areas.map((area) => (
+            <button key={area.id} type="button"
+              onClick={() => { setActiveArea(area.id); setSearch(""); setActiveEntry(null); setSheetOpen(false); }}
+              className={cn("flex items-center gap-2.5 rounded-lg px-3 py-3 text-left text-sm transition-colors",
+                activeArea === area.id && !search
+                  ? "bg-[var(--vd-blue-500)] text-white"
+                  : "text-[var(--foreground)] hover:bg-[var(--accent)]")}>
+              <span className="size-2.5 shrink-0 rounded-full" style={{ background: area.color }} />
+              <span className="flex-1 truncate font-medium">{area.name}</span>
+              <span className={cn("shrink-0 text-[10px] font-semibold",
+                activeArea === area.id && !search ? "text-white/70" : "text-[var(--muted-foreground)]")}>
+                {area.entries.length}
+              </span>
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
     <div className="flex flex-1 gap-4 overflow-hidden" style={{ minHeight: 0 }}>
-      {/* Sidebar áreas */}
+      {/* Sidebar áreas — desktop only */}
       <aside className="hidden w-56 shrink-0 flex-col gap-1 lg:flex">
         {/* Search */}
         <div className="relative mb-2">
@@ -201,34 +254,6 @@ function LibraryView() {
 
       {/* Conteúdo */}
       <div className="flex flex-1 flex-col gap-3 overflow-auto min-w-0">
-        {/* Mobile: área selector */}
-        <div className="flex gap-2 overflow-x-auto lg:hidden pb-1">
-          {areas.map((area) => (
-            <button key={area.id} type="button"
-              onClick={() => { setActiveArea(area.id); setSearch(""); setActiveEntry(null); }}
-              className={cn("flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap",
-                activeArea === area.id
-                  ? "bg-[var(--vd-blue-500)] text-white"
-                  : "bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)]")}>
-              <span className="size-2 rounded-full" style={{ background: area.color }} />
-              {area.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Search mobile */}
-        <div className="relative lg:hidden">
-          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--muted-foreground)]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Pesquisar…"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] py-2 pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30" />
-          {search && (
-            <button type="button" onClick={() => setSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]">
-              <X className="size-3.5" />
-            </button>
-          )}
-        </div>
 
         {/* Preview de embed */}
         {activeEntry && activeEntry.embedType !== "none" && (
@@ -312,6 +337,7 @@ function LibraryView() {
         )}
       </div>
     </div>
+    </>
   );
 }
 
