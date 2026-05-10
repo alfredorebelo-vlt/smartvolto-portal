@@ -28,6 +28,7 @@ export const authConfig = {
       const isPublic =
         pathname.startsWith("/login") ||
         pathname.startsWith("/api/auth") ||
+        pathname.startsWith("/api/restart") ||
         pathname.startsWith("/_next") ||
         pathname.startsWith("/brand") ||
         pathname === "/favicon.ico";
