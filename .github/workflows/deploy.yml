@@ -68,30 +68,11 @@ jobs:
           # Remover .next do .gitignore para incluir o build
           sed -i '/.next/d' .gitignore
 
-          # Verificar que .cpanel.yml está presente
-          echo "--- .cpanel.yml no deploy ---"
-          cat .cpanel.yml || echo "FICHEIRO NAO EXISTE"
-          echo "--- git status ---"
-          git status
-          echo "--- git ls-files .cpanel.yml ---"
-          git ls-files .cpanel.yml
-          echo "--- git check-ignore .cpanel.yml ---"
-          git check-ignore -v .cpanel.yml || echo "NAO IGNORADO"
-
           # Forçar inclusão do .cpanel.yml
           git add -f .cpanel.yml
-          echo "--- staged files ---"
-          git diff --cached --name-only | grep cpanel || echo "cpanel NAO STAGED"
 
           # Commit incremental em cima do deploy anterior
           git add -A
           git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
 
           git push origin deploy
-
-      - name: Reiniciar aplicação em produção
-        run: |
-          sleep 10
-          curl -s -X POST https://voltosmart.voltodrive.com/api/restart \
-            -H "x-restart-token: ${{ secrets.RESTART_TOKEN }}" \
-            || echo "Restart endpoint não respondeu — reinicia manualmente no cPanel"
