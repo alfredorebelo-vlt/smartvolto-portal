@@ -862,7 +862,15 @@ function ArticleViewer({
   onShowHistory: () => void;
 }) {
   const v = article.currentVersion;
-  if (!v) return null;
+  if (!v) return (
+    <div className="flex h-full items-center justify-center p-8 text-center">
+      <div>
+        <BookOpen className="mx-auto mb-3 size-8 text-[var(--muted-foreground)] opacity-40" />
+        <p className="text-sm font-medium text-[var(--foreground)]">Artigo sem conteúdo</p>
+        <p className="mt-1 text-xs text-[var(--muted-foreground)]">Este artigo não tem nenhuma versão publicada.</p>
+      </div>
+    </div>
+  );
   const updated = new Date(v.createdAt).toLocaleDateString("pt-PT", {
     day: "numeric", month: "long", year: "numeric",
   });

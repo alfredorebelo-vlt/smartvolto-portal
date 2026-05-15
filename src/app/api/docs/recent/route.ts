@@ -1,31 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { google, drive_v3 } from "googleapis";
-
-function makeOAuth2(accessToken: string, refreshToken?: string | null, expiresAt?: number | null) {
-  const oauth2 = new google.auth.OAuth2(
-    process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID,
-    process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET,
-  );
-  oauth2.setCredentials({
-    access_token: accessToken,
-    refresh_token: refreshToken ?? undefined,
-    expiry_date: expiresAt ? expiresAt * 1000 : undefined,
-  });
-  return oauth2;
-}
-
-const INSUFFICIENT = [
-  "invalid_grant", "insufficientPermissions",
-  "insufficientAuthentication", "insufficient authentication",
-  "Request had insufficient",
-];
-
-function isAuthError(msg: string) {
-  return INSUFFICIENT.some((s) => msg.includes(s));
-}
+import { getGoogleOAuth2, isAuthError } from "@/lib/google-oauth";
 
 export async function GET(request: NextRequest) {
   const session = (await auth()) as Session | null;
@@ -34,14 +11,9 @@ export async function GET(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = (session.user as any).id as string;
 
-  const account = await prisma.account.findFirst({
-    where: { userId, provider: "google" },
-    select: { access_token: true, refresh_token: true, expires_at: true },
-  });
-
-  if (!account?.access_token) {
-    return NextResponse.json({ files: [], error: "drive_auth_required" });
-  }
+  const result = await getGoogleOAuth2(userId);
+  if (!result) return NextResponse.json({ files: [], error: "drive_auth_required" });
+  const { oauth2 } = result;
 
   const { searchParams } = request.nextUrl;
   // modes: recent | folder | my-drive | search | shared-drives | shared-drive
@@ -51,7 +23,6 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q") ?? "";
 
   try {
-    const oauth2 = makeOAuth2(account.access_token, account.refresh_token, account.expires_at);
     const drive = google.drive({ version: "v3", auth: oauth2 });
 
     const FIELDS = "files(id,name,mimeType,webViewLink,iconLink,modifiedTime,size,parents,driveId)";

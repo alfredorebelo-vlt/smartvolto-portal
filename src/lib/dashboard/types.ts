@@ -14,7 +14,7 @@ export type WidgetType =
 export type AnnouncementsConfig = { limit: number };
 export type BirthdaysConfig = { limit?: number };
 export type CalendarEventsConfig = { calendarIds: string[]; daysAhead: number; maxEvents: number };
-export type QuickLinksConfig = { links: { label: string; url: string; icon: string; color?: string }[] };
+export type QuickLinksConfig = { links: { label: string; url: string; icon: string; color?: string; roleIds?: string[] }[] };
 export type KpiN8nConfig = {
   webhookUrl: string;
   // Optional: multiple KPIs from same webhook

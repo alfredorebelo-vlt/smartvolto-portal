@@ -109,6 +109,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (dbUser) {
             token.id = dbUser.id;
             token.isAdmin = dbUser.isAdmin;
+            token.roleId = dbUser.roleId ?? null;
             token.givenName = dbUser.givenName;
             token.familyName = dbUser.familyName;
             token.jobTitle = dbUser.jobTitle;
@@ -128,6 +129,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const u = session.user as any;
         u.id         = (token.id as string) ?? (token.sub as string);
         u.isAdmin    = (token.isAdmin as boolean) ?? false;
+        u.roleId     = (token.roleId as string | null) ?? null;
         u.givenName  = (token.givenName as string | null) ?? null;
         u.familyName = (token.familyName as string | null) ?? null;
         u.jobTitle   = (token.jobTitle as string | null) ?? null;

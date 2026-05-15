@@ -737,7 +737,7 @@ function TasksWidget({ title, widget }: { title: string; widget: WidgetMeta }) {
 
 /* ---- Widget: Quick Links ---- */
 
-type QuickLink = { label: string; url: string; icon: string; color?: string };
+type QuickLink = { label: string; url: string; icon: string; color?: string; roleIds?: string[] };
 
 function QuickLinksWidget({ title, data }: { title: string; data: unknown }) {
   const links = (data as QuickLink[]) ?? [];

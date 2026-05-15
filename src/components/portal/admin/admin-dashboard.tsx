@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, Pencil, Trash2, GripVertical, Eye, EyeOff,
-  LayoutDashboard, ChevronDown, ChevronUp, Save, X, Link,
+  LayoutDashboard, ChevronDown, ChevronUp, Save, X, Link, Check, ShieldAlert,
+  Hash, Calendar, ListTodo, HardDrive, Monitor, Webhook,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { confirm } from "@/components/ui/confirm-dialog";
 import type { WidgetType } from "@/lib/dashboard/types";
 
-type QuickLink = { label: string; url: string; color: string };
+type QuickLink = { label: string; url: string; color: string; roleIds: string[] };
+type KpiMetric = { key: string; label: string; format: "number" | "currency" | "percent"; prefix: string; suffix: string; trendKey: string };
 
 type Widget = {
   id: string;
@@ -21,6 +23,12 @@ type Widget = {
   isActive: boolean;
   roleIds: string[];
   cacheTtl: number;
+};
+
+type Role = {
+  id: string;
+  name: string;
+  description: string | null;
 };
 
 const WIDGET_TYPES: { value: WidgetType; label: string; description: string }[] = [
@@ -38,15 +46,21 @@ const COL_LABELS: Record<number, string> = { 1: "Coluna principal (2/3)", 2: "Co
 
 export function AdminDashboard() {
   const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Widget | null>(null);
   const [creating, setCreating] = useState(false);
 
   async function load() {
     setLoading(true);
-    const res = await fetch("/api/admin/dashboard");
+    const [res, rolesRes] = await Promise.all([
+      fetch("/api/admin/dashboard"),
+      fetch("/api/admin/roles"),
+    ]);
     const data = await res.json();
+    const rolesData = await rolesRes.json();
     setWidgets(data.widgets ?? []);
+    setRoles(rolesData.roles ?? []);
     setLoading(false);
   }
 
@@ -147,6 +161,7 @@ export function AdminDashboard() {
       {(creating || editing) && (
         <WidgetForm
           widget={editing ?? undefined}
+          roles={roles}
           onClose={() => { setCreating(false); setEditing(null); }}
           onSaved={load}
         />
@@ -185,8 +200,13 @@ function WidgetCard({
             {typeMeta?.label ?? widget.type}
           </span>
         </div>
-        <div className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">
-          {typeMeta?.description} · cache {widget.cacheTtl}s
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-[var(--muted-foreground)]">
+          <span>{typeMeta?.description} · cache {widget.cacheTtl}s</span>
+          {widget.roleIds.length > 0 && (
+            <span className="rounded-full bg-[var(--vd-blue-500)]/10 px-1.5 py-px text-[10px] font-medium text-[var(--vd-blue-500)]">
+              {widget.roleIds.length} role{widget.roleIds.length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
       </div>
 
@@ -222,9 +242,10 @@ function WidgetCard({
 /* ---- Widget Form (criar / editar) ---- */
 
 function WidgetForm({
-  widget, onClose, onSaved,
+  widget, roles, onClose, onSaved,
 }: {
   widget?: Widget;
+  roles: Role[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -234,39 +255,109 @@ function WidgetForm({
   const [col, setCol] = useState(widget?.col ?? 1);
   const [isActive, setIsActive] = useState(widget?.isActive ?? true);
   const [cacheTtl, setCacheTtl] = useState(widget?.cacheTtl ?? 300);
-  const [configText, setConfigText] = useState(
-    JSON.stringify(widget?.config ?? getDefaultConfig(widget?.type ?? "announcements"), null, 2)
-  );
-  const [links, setLinks] = useState<QuickLink[]>(() => {
-    const cfg = widget?.config as { links?: QuickLink[] } | undefined;
-    return cfg?.links ?? [{ label: "", url: "https://", color: "#2e3c8f" }];
-  });
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(widget?.roleIds ?? []);
   const [configError, setConfigError] = useState("");
   const [saving, setSaving] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  // --- per-type config state ---
+  const cfg = widget?.config as Record<string, unknown> | undefined;
+
+  // announcements / birthdays / tasks simple counts
+  const [limit, setLimit] = useState<number>(() =>
+    (cfg?.limit as number) ?? (cfg?.maxTasks as number) ?? 3
+  );
+  const [showCompleted, setShowCompleted] = useState<boolean>((cfg?.showCompleted as boolean) ?? false);
+
+  // calendar_events
+  const [calendarIds, setCalendarIds] = useState<string>(() =>
+    ((cfg?.calendarIds as string[]) ?? []).join("\n")
+  );
+  const [daysAhead, setDaysAhead] = useState<number>((cfg?.daysAhead as number) ?? 7);
+  const [maxEvents, setMaxEvents] = useState<number>((cfg?.maxEvents as number) ?? 5);
+
+  // drive_recent
+  const [folderId, setFolderId] = useState<string>((cfg?.folderId as string) ?? "");
+
+  // iframe_embed
+  const [iframeUrl, setIframeUrl] = useState<string>((cfg?.url as string) ?? "https://");
+  const [iframeHeight, setIframeHeight] = useState<number>((cfg?.height as number) ?? 300);
+
+  // quick_links
+  const [links, setLinks] = useState<QuickLink[]>(() => {
+    const l = cfg?.links as QuickLink[] | undefined;
+    return l ?? [{ label: "", url: "https://", color: "#2e3c8f", roleIds: [] }];
+  });
+
+  // kpi_n8n
+  const [webhookUrl, setWebhookUrl] = useState<string>((cfg?.webhookUrl as string) ?? "");
+  const [metrics, setMetrics] = useState<KpiMetric[]>(() => {
+    const m = cfg?.metrics as KpiMetric[] | undefined;
+    return m ?? [{ key: "", label: "", format: "number", prefix: "", suffix: "", trendKey: "" }];
+  });
+
+  function toggleRole(id: string) {
+    setSelectedRoles((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
   function handleTypeChange(t: WidgetType) {
     setType(t);
-    if (!isEdit) setConfigText(JSON.stringify(getDefaultConfig(t), null, 2));
+  }
+
+  function buildConfig(): Record<string, unknown> | null {
+    switch (type) {
+      case "announcements":
+      case "birthdays":
+        return { limit };
+      case "tasks":
+        return { showCompleted, maxTasks: limit };
+      case "calendar_events":
+        return {
+          calendarIds: calendarIds.split("\n").map((s) => s.trim()).filter(Boolean),
+          daysAhead,
+          maxEvents,
+        };
+      case "drive_recent":
+        return { folderId: folderId.trim() || undefined, limit };
+      case "iframe_embed":
+        if (!iframeUrl.trim() || iframeUrl === "https://") {
+          setConfigError("URL do iframe obrigatório");
+          return null;
+        }
+        return { url: iframeUrl.trim(), height: iframeHeight };
+      case "quick_links":
+        if (links.some((l) => !l.label.trim() || !l.url.trim())) {
+          setConfigError("Todos os links precisam de nome e URL");
+          return null;
+        }
+        return { links: links.map((l) => ({ ...l, icon: "link", roleIds: l.roleIds ?? [] })) };
+      case "kpi_n8n":
+        if (!webhookUrl.trim()) { setConfigError("URL do webhook obrigatório"); return null; }
+        if (metrics.some((m) => !m.key.trim() || !m.label.trim())) {
+          setConfigError("Todas as métricas precisam de key e label");
+          return null;
+        }
+        return {
+          webhookUrl: webhookUrl.trim(),
+          metrics: metrics.map((m) => ({
+            key: m.key.trim(),
+            label: m.label.trim(),
+            format: m.format,
+            ...(m.prefix.trim() ? { prefix: m.prefix.trim() } : {}),
+            ...(m.suffix.trim() ? { suffix: m.suffix.trim() } : {}),
+            ...(m.trendKey.trim() ? { trendKey: m.trendKey.trim() } : {}),
+          })),
+        };
+      default:
+        return {};
+    }
   }
 
   function validateConfig(): Record<string, unknown> | null {
-    if (type === "quick_links") {
-      if (links.some((l) => !l.label.trim() || !l.url.trim())) {
-        setConfigError("Todos os links precisam de nome e URL");
-        return null;
-      }
-      setConfigError("");
-      return { links: links.map((l) => ({ ...l, icon: "link" })) };
-    }
-    try {
-      const parsed = JSON.parse(configText);
-      setConfigError("");
-      return parsed;
-    } catch {
-      setConfigError("JSON inválido");
-      return null;
-    }
+    setConfigError("");
+    return buildConfig();
   }
 
   async function save() {
@@ -280,33 +371,11 @@ function WidgetForm({
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, title: title.trim(), config, col, isActive, cacheTtl }),
+      body: JSON.stringify({ type, title: title.trim(), config, col, isActive, cacheTtl, roleIds: selectedRoles }),
     });
     setSaving(false);
     onSaved();
     onClose();
-  }
-
-  function addLink() {
-    setLinks((prev) => [...prev, { label: "", url: "https://", color: "#2e3c8f" }]);
-  }
-
-  function removeLink(i: number) {
-    setLinks((prev) => prev.filter((_, idx) => idx !== i));
-  }
-
-  function updateLink(i: number, field: keyof QuickLink, value: string) {
-    setLinks((prev) => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
-  }
-
-  function moveLink(i: number, dir: -1 | 1) {
-    setLinks((prev) => {
-      const next = [...prev];
-      const j = i + dir;
-      if (j < 0 || j >= next.length) return prev;
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    });
   }
 
   return (
@@ -380,79 +449,72 @@ function WidgetForm({
             </div>
           </div>
 
-          {/* Editor visual de links — só para quick_links */}
-          {type === "quick_links" ? (
-            <div>
-              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Links</label>
-              <div className="flex flex-col gap-2">
-                {links.map((link, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2">
-                    <div className="flex flex-col gap-1">
-                      <button type="button" onClick={() => moveLink(i, -1)} disabled={i === 0}
-                        className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--accent)] disabled:opacity-20">
-                        <ChevronUp className="size-3" />
-                      </button>
-                      <button type="button" onClick={() => moveLink(i, 1)} disabled={i === links.length - 1}
-                        className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--accent)] disabled:opacity-20">
-                        <ChevronDown className="size-3" />
-                      </button>
-                    </div>
-                    <input
-                      type="color"
-                      value={link.color}
-                      onChange={(e) => updateLink(i, "color", e.target.value)}
-                      className="size-8 shrink-0 cursor-pointer rounded border border-[var(--border)] bg-transparent p-0.5"
-                      title="Cor do ícone"
-                    />
-                    <div className="flex flex-1 flex-col gap-1 min-w-0">
-                      <input
-                        type="text"
-                        value={link.label}
-                        onChange={(e) => updateLink(i, "label", e.target.value)}
-                        placeholder="Nome do link"
-                        className="w-full rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ring)]/30"
-                      />
-                      <input
-                        type="url"
-                        value={link.url}
-                        onChange={(e) => updateLink(i, "url", e.target.value)}
-                        placeholder="https://"
-                        className="w-full rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs text-[var(--muted-foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)]/30"
-                      />
-                    </div>
-                    <button type="button" onClick={() => removeLink(i)}
-                      className="grid size-7 shrink-0 place-items-center rounded text-[var(--muted-foreground)] hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20">
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                ))}
-                <button type="button" onClick={addLink}
-                  className="flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)] hover:text-[var(--vd-blue-500)]">
-                  <Link className="size-3.5" />
-                  Adicionar link
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Config JSON — para todos os outros tipos */
-            <div>
-              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                Configuração (JSON)
-              </label>
-              <textarea
-                value={configText}
-                onChange={(e) => { setConfigText(e.target.value); setConfigError(""); }}
-                rows={8}
-                spellCheck={false}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-              />
-              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
-                <ConfigHint type={type} />
-              </p>
-            </div>
-          )}
+          {/* Config visual por tipo */}
+          <ConfigEditor
+            type={type}
+            roles={roles}
+            // shared
+            limit={limit} onLimit={setLimit}
+            // tasks
+            showCompleted={showCompleted} onShowCompleted={setShowCompleted}
+            // calendar
+            calendarIds={calendarIds} onCalendarIds={setCalendarIds}
+            daysAhead={daysAhead} onDaysAhead={setDaysAhead}
+            maxEvents={maxEvents} onMaxEvents={setMaxEvents}
+            // drive
+            folderId={folderId} onFolderId={setFolderId}
+            // iframe
+            iframeUrl={iframeUrl} onIframeUrl={setIframeUrl}
+            iframeHeight={iframeHeight} onIframeHeight={setIframeHeight}
+            // quick_links
+            links={links} onLinks={setLinks}
+            // kpi_n8n
+            webhookUrl={webhookUrl} onWebhookUrl={setWebhookUrl}
+            metrics={metrics} onMetrics={setMetrics}
+          />
 
           {configError && <p className="text-xs text-red-500">{configError}</p>}
+
+          {/* Roles */}
+          {roles.length > 0 && (
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                Acesso por role
+              </label>
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                {roles.map((role) => {
+                  const active = selectedRoles.includes(role.id);
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => toggleRole(role.id)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-colors",
+                        active
+                          ? "border-[var(--vd-blue-500)] bg-[var(--vd-blue-500)]/10 text-[var(--vd-blue-500)]"
+                          : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)]/50",
+                      )}
+                    >
+                      <div className={cn(
+                        "flex size-3.5 shrink-0 items-center justify-center rounded-sm border",
+                        active ? "border-[var(--vd-blue-500)] bg-[var(--vd-blue-500)]" : "border-[var(--border)]",
+                      )}>
+                        {active && <Check className="size-2.5 text-white" />}
+                      </div>
+                      <span className="truncate font-medium">{role.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedRoles.length === 0 && (
+                <p className="mt-1.5 flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+                  <ShieldAlert className="size-3" />
+                  Sem restrição de role — visível a todos os utilizadores autenticados
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Activo */}
           <label className="flex cursor-pointer items-center gap-2.5 text-sm">
@@ -486,38 +548,337 @@ function WidgetForm({
   );
 }
 
-/* ---- Helpers ---- */
+/* ---- Config Editor (visual, per-type) ---- */
 
-function getDefaultConfig(type: WidgetType): Record<string, unknown> {
-  switch (type) {
-    case "announcements":   return { limit: 3 };
-    case "birthdays":       return { limit: 3 };
-    case "calendar_events": return { calendarIds: [], daysAhead: 7, maxEvents: 5 };
-    case "tasks":           return { showCompleted: false, maxTasks: 10 };
-    case "quick_links":     return { links: [{ label: "Exemplo", url: "https://", icon: "link", color: "#2e3c8f" }] };
-    case "kpi_n8n":         return {
-      webhookUrl: "https://n8n.example.com/webhook/dashboard-kpis",
-      metrics: [
-        { key: "reservas", label: "Reservas", format: "number", trendKey: "reservas_delta" },
-        { key: "receita",  label: "Receita",  format: "currency", prefix: "€" },
-      ],
-    };
-    case "drive_recent":    return { folderId: "", limit: 5 };
-    case "iframe_embed":    return { url: "https://", height: 300 };
-    default:                return {};
-  }
+type ConfigEditorProps = {
+  type: WidgetType;
+  roles: Role[];
+  limit: number; onLimit: (v: number) => void;
+  showCompleted: boolean; onShowCompleted: (v: boolean) => void;
+  calendarIds: string; onCalendarIds: (v: string) => void;
+  daysAhead: number; onDaysAhead: (v: number) => void;
+  maxEvents: number; onMaxEvents: (v: number) => void;
+  folderId: string; onFolderId: (v: string) => void;
+  iframeUrl: string; onIframeUrl: (v: string) => void;
+  iframeHeight: number; onIframeHeight: (v: number) => void;
+  links: QuickLink[]; onLinks: (v: QuickLink[]) => void;
+  webhookUrl: string; onWebhookUrl: (v: string) => void;
+  metrics: KpiMetric[]; onMetrics: (v: KpiMetric[]) => void;
+};
+
+const LABEL = "mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]";
+const INPUT = "w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30";
+const INPUT_SM = "w-full rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ring)]/30";
+
+function SectionHeader({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 border-b border-[var(--border)] pb-2">
+      <Icon className="size-3.5 text-[var(--muted-foreground)]" />
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">{label}</span>
+    </div>
+  );
 }
 
-function ConfigHint({ type }: { type: WidgetType }) {
-  const hints: Record<WidgetType, string> = {
-    announcements:   "limit — número de anúncios a mostrar",
-    birthdays:       "limit — número de próximos aniversários a mostrar (padrão: 3)",
-    calendar_events: "calendarIds (array de IDs do Google Calendar), daysAhead, maxEvents",
-    tasks:           "showCompleted — mostrar tarefas concluídas; maxTasks — máximo de tarefas a mostrar",
-    quick_links:     "links — array de { label, url, icon, color? }",
-    kpi_n8n:         "webhookUrl — URL do webhook n8n; metrics — array de { key, label, format, prefix?, suffix?, trendKey? }",
-    drive_recent:    "folderId (opcional) — ID da pasta Drive; limit — número de ficheiros",
-    iframe_embed:    "url — URL a incorporar; height — altura em px",
-  };
-  return <>{hints[type]}</>;
+function ConfigEditor(p: ConfigEditorProps) {
+  function updateLink(i: number, field: keyof QuickLink, value: string) {
+    p.onLinks(p.links.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
+  }
+  function moveLink(i: number, dir: -1 | 1) {
+    const next = [...p.links];
+    const j = i + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    p.onLinks(next);
+  }
+  function updateMetric(i: number, field: keyof KpiMetric, value: string) {
+    p.onMetrics(p.metrics.map((m, idx) => idx === i ? { ...m, [field]: value } : m));
+  }
+  function moveMetric(i: number, dir: -1 | 1) {
+    const next = [...p.metrics];
+    const j = i + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    p.onMetrics(next);
+  }
+
+  if (p.type === "announcements" || p.type === "birthdays") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Hash} label="Configuração" />
+        <div>
+          <label className={LABEL}>Número de itens a mostrar</label>
+          <input type="number" min={1} max={20} value={p.limit}
+            onChange={(e) => p.onLimit(Number(e.target.value))} className={INPUT} />
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "tasks") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={ListTodo} label="Configuração" />
+        <div>
+          <label className={LABEL}>Máximo de tarefas</label>
+          <input type="number" min={1} max={50} value={p.limit}
+            onChange={(e) => p.onLimit(Number(e.target.value))} className={INPUT} />
+        </div>
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+          <input type="checkbox" checked={p.showCompleted}
+            onChange={(e) => p.onShowCompleted(e.target.checked)} className="size-4 rounded" />
+          <span className="text-[var(--foreground)]">Mostrar tarefas concluídas</span>
+        </label>
+      </div>
+    );
+  }
+
+  if (p.type === "calendar_events") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Calendar} label="Configuração" />
+        <div>
+          <label className={LABEL}>IDs de calendário (um por linha)</label>
+          <textarea
+            value={p.calendarIds}
+            onChange={(e) => p.onCalendarIds(e.target.value)}
+            rows={3}
+            placeholder={"primary\nabc123@group.calendar.google.com"}
+            className={cn(INPUT, "font-mono text-xs")}
+          />
+          <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+            Deixa em branco para usar o calendário principal. Encontra o ID nas definições do Google Calendar.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Dias à frente</label>
+            <input type="number" min={1} max={90} value={p.daysAhead}
+              onChange={(e) => p.onDaysAhead(Number(e.target.value))} className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>Máx. eventos</label>
+            <input type="number" min={1} max={20} value={p.maxEvents}
+              onChange={(e) => p.onMaxEvents(Number(e.target.value))} className={INPUT} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "drive_recent") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={HardDrive} label="Configuração" />
+        <div>
+          <label className={LABEL}>ID da pasta Drive (opcional)</label>
+          <input type="text" value={p.folderId}
+            onChange={(e) => p.onFolderId(e.target.value)}
+            placeholder="Deixa em branco para mostrar ficheiros recentes de todo o Drive"
+            className={INPUT} />
+          <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+            Encontra o ID no URL da pasta: drive.google.com/drive/folders/<strong>ID_AQUI</strong>
+          </p>
+        </div>
+        <div>
+          <label className={LABEL}>Número de ficheiros</label>
+          <input type="number" min={1} max={20} value={p.limit}
+            onChange={(e) => p.onLimit(Number(e.target.value))} className={INPUT} />
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "iframe_embed") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Monitor} label="Configuração" />
+        <div>
+          <label className={LABEL}>URL a incorporar</label>
+          <input type="url" value={p.iframeUrl}
+            onChange={(e) => p.onIframeUrl(e.target.value)}
+            placeholder="https://example.com/dashboard"
+            className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>Altura (px)</label>
+          <input type="number" min={100} max={1200} step={50} value={p.iframeHeight}
+            onChange={(e) => p.onIframeHeight(Number(e.target.value))} className={INPUT} />
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "quick_links") {
+    function toggleLinkRole(linkIdx: number, roleId: string) {
+      const link = p.links[linkIdx];
+      const current = link.roleIds ?? [];
+      const next = current.includes(roleId) ? current.filter((x) => x !== roleId) : [...current, roleId];
+      p.onLinks(p.links.map((l, idx) => idx === linkIdx ? { ...l, roleIds: next } : l));
+    }
+
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Link} label="Links" />
+        <div className="flex flex-col gap-2">
+          {p.links.map((link, i) => (
+            <div key={i} className="flex flex-col gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-2">
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button type="button" onClick={() => moveLink(i, -1)} disabled={i === 0}
+                    className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-20">
+                    <ChevronUp className="size-3" />
+                  </button>
+                  <button type="button" onClick={() => moveLink(i, 1)} disabled={i === p.links.length - 1}
+                    className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-20">
+                    <ChevronDown className="size-3" />
+                  </button>
+                </div>
+                <input type="color" value={link.color}
+                  onChange={(e) => updateLink(i, "color", e.target.value)}
+                  className="size-8 shrink-0 cursor-pointer rounded border border-[var(--border)] bg-transparent p-0.5" />
+                <div className="flex flex-1 flex-col gap-1 min-w-0">
+                  <input type="text" value={link.label}
+                    onChange={(e) => updateLink(i, "label", e.target.value)}
+                    placeholder="Nome do link" className={INPUT_SM} />
+                  <input type="url" value={link.url}
+                    onChange={(e) => updateLink(i, "url", e.target.value)}
+                    placeholder="https://"
+                    className={cn(INPUT_SM, "text-xs text-[var(--muted-foreground)]")} />
+                </div>
+                <button type="button" onClick={() => p.onLinks(p.links.filter((_, idx) => idx !== i))}
+                  className="grid size-7 shrink-0 place-items-center rounded text-[var(--muted-foreground)] hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20">
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+              {p.roles.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-[var(--border)] pt-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                    Roles:
+                  </span>
+                  {p.roles.map((role) => {
+                    const active = (link.roleIds ?? []).includes(role.id);
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => toggleLinkRole(i, role.id)}
+                        className={cn(
+                          "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-colors",
+                          active
+                            ? "border-[var(--vd-blue-500)] bg-[var(--vd-blue-500)]/10 text-[var(--vd-blue-500)]"
+                            : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)]/50",
+                        )}
+                      >
+                        {active && <Check className="size-2.5" />}
+                        {role.name}
+                      </button>
+                    );
+                  })}
+                  {(link.roleIds ?? []).length === 0 && (
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400">visível a todos</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+          <button type="button"
+            onClick={() => p.onLinks([...p.links, { label: "", url: "https://", color: "#2e3c8f", roleIds: [] }])}
+            className="flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)] hover:text-[var(--vd-blue-500)]">
+            <Link className="size-3.5" /> Adicionar link
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "kpi_n8n") {
+    return (
+      <div className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Webhook} label="KPI via n8n" />
+        <div>
+          <label className={LABEL}>URL do webhook n8n</label>
+          <input type="url" value={p.webhookUrl}
+            onChange={(e) => p.onWebhookUrl(e.target.value)}
+            placeholder="https://n8n.example.com/webhook/..."
+            className={INPUT} />
+        </div>
+        <div>
+          <label className={cn(LABEL, "mb-2")}>Métricas</label>
+          <div className="flex flex-col gap-2">
+            {p.metrics.map((m, i) => (
+              <div key={i} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">Métrica {i + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <button type="button" onClick={() => moveMetric(i, -1)} disabled={i === 0}
+                      className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-20">
+                      <ChevronUp className="size-3" />
+                    </button>
+                    <button type="button" onClick={() => moveMetric(i, 1)} disabled={i === p.metrics.length - 1}
+                      className="grid size-5 place-items-center rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-20">
+                      <ChevronDown className="size-3" />
+                    </button>
+                    <button type="button"
+                      onClick={() => p.onMetrics(p.metrics.filter((_, idx) => idx !== i))}
+                      className="grid size-6 place-items-center rounded text-[var(--muted-foreground)] hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20">
+                      <Trash2 className="size-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={LABEL}>Key (JSON path)</label>
+                    <input type="text" value={m.key}
+                      onChange={(e) => updateMetric(i, "key", e.target.value)}
+                      placeholder="kpis.reservas" className={INPUT_SM} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Label</label>
+                    <input type="text" value={m.label}
+                      onChange={(e) => updateMetric(i, "label", e.target.value)}
+                      placeholder="Reservas" className={INPUT_SM} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Formato</label>
+                    <select value={m.format}
+                      onChange={(e) => updateMetric(i, "format", e.target.value)}
+                      className={cn(INPUT_SM, "bg-[var(--card)]")}>
+                      <option value="number">Número</option>
+                      <option value="currency">Moeda</option>
+                      <option value="percent">Percentagem</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={LABEL}>Key de tendência (opcional)</label>
+                    <input type="text" value={m.trendKey}
+                      onChange={(e) => updateMetric(i, "trendKey", e.target.value)}
+                      placeholder="kpis.reservas_delta" className={INPUT_SM} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Prefixo (opcional)</label>
+                    <input type="text" value={m.prefix}
+                      onChange={(e) => updateMetric(i, "prefix", e.target.value)}
+                      placeholder="€" className={INPUT_SM} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>Sufixo (opcional)</label>
+                    <input type="text" value={m.suffix}
+                      onChange={(e) => updateMetric(i, "suffix", e.target.value)}
+                      placeholder="%" className={INPUT_SM} />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button type="button"
+              onClick={() => p.onMetrics([...p.metrics, { key: "", label: "", format: "number", prefix: "", suffix: "", trendKey: "" }])}
+              className="flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--muted-foreground)] hover:border-[var(--vd-blue-500)] hover:text-[var(--vd-blue-500)]">
+              <Plus className="size-3.5" /> Adicionar métrica
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }

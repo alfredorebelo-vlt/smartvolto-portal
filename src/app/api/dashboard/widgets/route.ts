@@ -24,8 +24,19 @@ export async function GET() {
     return ids.length === 0 || (userRoleId && ids.includes(userRoleId));
   });
 
-  // Strip roleIds from client response
-  const widgets = visible.map(({ roleIds: _r, ...w }) => w);
+  // Strip widget-level roleIds; for quick_links, filter individual links by role
+  const widgets = visible.map(({ roleIds: _r, ...w }) => {
+    if (w.type !== "quick_links") return w;
+    const cfg = w.config as { links?: { roleIds?: string[]; [k: string]: unknown }[] };
+    if (!cfg?.links) return w;
+    const filteredLinks = cfg.links
+      .filter((l) => {
+        const ids = l.roleIds ?? [];
+        return ids.length === 0 || (userRoleId && ids.includes(userRoleId));
+      })
+      .map(({ roleIds: _lr, ...l }) => l);
+    return { ...w, config: { ...cfg, links: filteredLinks } };
+  });
 
   return NextResponse.json({ widgets });
 }
