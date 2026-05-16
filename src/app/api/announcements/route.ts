@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { sendWebhookMessage, formatAnnouncementMessage, isSlackConfigured } from "@/lib/slack";
 
 const AUTHOR_SELECT = {
   id: true, givenName: true, familyName: true, name: true, image: true, jobTitle: true,
@@ -91,5 +92,20 @@ export async function POST(req: NextRequest) {
   });
 
   await logAudit({ session, action: "CREATE", entity: "Announcement", entityId: announcement.id, meta: { title: announcement.title } });
+
+  // Notificar Slack (fire-and-forget — não bloqueia a resposta)
+  if (isSlackConfigured()) {
+    const authorName = [dbUser.givenName, dbUser.familyName].filter(Boolean).join(" ") || dbUser.name || dbUser.email;
+    const baseUrl = process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? "https://portal.voltodrive.com";
+    const payload = formatAnnouncementMessage({
+      title: announcement.title,
+      content: announcement.content,
+      authorName,
+      category: announcement.category,
+      portalUrl: `${baseUrl}/`,
+    });
+    sendWebhookMessage(payload).catch(() => null);
+  }
+
   return NextResponse.json({ announcement }, { status: 201 });
 }

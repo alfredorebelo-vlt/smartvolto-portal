@@ -4,8 +4,9 @@
 import { prisma } from "@/lib/prisma";
 import type {
   AnnouncementsConfig, BirthdaysConfig, KpiN8nConfig,
-  QuickLinksConfig, WidgetConfig, WidgetType,
+  QuickLinksConfig, SlackChannelConfig, WidgetConfig, WidgetType,
 } from "./types";
+import { getChannelMessages, getSlackUserName } from "@/lib/slack";
 
 export type AdapterResult = { ok: true; data: unknown } | { ok: false; error: string };
 
@@ -24,6 +25,7 @@ export async function fetchWidgetData(
         return { ok: true, data: { useClientFetch: true } };
       case "drive_recent": return { ok: true, data: { useClientFetch: true } };
       case "iframe_embed": return { ok: true, data: null };
+      case "slack_channel": return fetchSlackChannel(config as SlackChannelConfig);
       default:
         return { ok: false, error: `Tipo desconhecido: ${type}` };
     }
@@ -103,6 +105,39 @@ async function fetchKpiN8n(config: KpiN8nConfig): Promise<AdapterResult> {
   });
 
   return { ok: true, data: { raw, metrics } };
+}
+
+/* ---- slack_channel ---- */
+async function fetchSlackChannel(config: SlackChannelConfig): Promise<AdapterResult> {
+  const channelId = config.channelId ?? process.env.SLACK_CHANNEL_ID;
+  if (!channelId) return { ok: false, error: "Canal Slack não configurado" };
+
+  const messages = await getChannelMessages(channelId, config.limit ?? 10);
+  if (!messages.length) return { ok: true, data: [] };
+
+  // Resolve nomes de utilizadores em paralelo (cache simples por ID neste pedido)
+  const userIds = [...new Set(messages.map((m) => m.user).filter(Boolean))] as string[];
+  const nameMap = new Map<string, string>();
+  await Promise.all(
+    userIds.map(async (id) => {
+      const name = await getSlackUserName(id);
+      if (name) nameMap.set(id, name);
+    })
+  );
+
+  const data = {
+    channelId,
+    teamId: process.env.SLACK_TEAM_ID ?? "",
+    messages: messages.map((m) => ({
+      ts: m.ts,
+      text: m.text,
+      userName: m.user ? (nameMap.get(m.user) ?? "Alguém") : "Bot",
+      isBot: !!m.bot_id,
+      date: new Date(parseFloat(m.ts) * 1000).toISOString(),
+    })),
+  };
+
+  return { ok: true, data };
 }
 
 function getNestedValue(obj: unknown, path: string): unknown {

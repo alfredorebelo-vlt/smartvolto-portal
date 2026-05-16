@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Link2,
   Cake,
+  Hash,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import type { DirectoryUser } from "@/lib/directory";
@@ -367,6 +368,30 @@ function PersonDrawer({
     : null;
   const reports = allUsers.filter((u) => u.managerEmail === user.email);
 
+  const [slackId, setSlackId] = useState<string | null | "loading" | "error">(null);
+  const [slackTeamId, setSlackTeamId] = useState<string>("");
+
+  function openSlack() {
+    if (slackId === "loading") return;
+    if (slackId && slackId !== "error") {
+      window.open(`slack://user?team=${slackTeamId}&id=${slackId}`, "_blank");
+      return;
+    }
+    setSlackId("loading");
+    fetch(`/api/directory/slack-user?email=${encodeURIComponent(user.email)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.id) {
+          setSlackId(d.id);
+          setSlackTeamId(d.teamId ?? "");
+          window.open(`slack://user?team=${d.teamId ?? ""}&id=${d.id}`, "_blank");
+        } else {
+          setSlackId("error");
+        }
+      })
+      .catch(() => setSlackId("error"));
+  }
+
   // ESC fecha
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -445,6 +470,21 @@ function PersonDrawer({
               <Phone className="size-4" /> Sem telefone
             </span>
           )}
+          <button
+            type="button"
+            onClick={openSlack}
+            disabled={slackId === "loading"}
+            title={slackId === "error" ? "Utilizador não encontrado no Slack" : "Abrir conversa no Slack"}
+            className={cn(
+              "col-span-2 flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors",
+              slackId === "error"
+                ? "border-[var(--border)] text-[var(--muted-foreground)] opacity-60 cursor-not-allowed"
+                : "border-[#4a154b]/20 bg-[#4a154b]/5 text-[#4a154b] hover:bg-[#4a154b]/10 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300",
+            )}
+          >
+            <Hash className="size-4" />
+            {slackId === "loading" ? "A procurar…" : slackId === "error" ? "Não encontrado no Slack" : "Mensagem no Slack"}
+          </button>
         </div>
 
         {/* Details */}

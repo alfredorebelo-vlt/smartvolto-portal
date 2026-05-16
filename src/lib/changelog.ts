@@ -5,9 +5,31 @@ export type VersionEntry = {
   changes: string[];
 };
 
-export const CURRENT_VERSION = "1.1";
+export const CURRENT_VERSION = "1.3";
 
 export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "1.3",
+    date: "2026-05-17",
+    description: "Integração Slack — widget de canal, notificações de anúncios e mensagens diretas no diretório",
+    changes: [
+      "Novo widget 'Canal Slack' — mostra mensagens recentes de um canal com nomes reais e filtragem de mensagens de sistema",
+      "Cada mensagem do widget é clicável e abre o Slack diretamente na mensagem correspondente",
+      "Anúncios publicados no portal notificam automaticamente o canal Slack via webhook (Block Kit)",
+      "Botão 'Mensagem no Slack' no drawer de cada pessoa do diretório — abre conversa direta na app Slack",
+      "Drag & drop nativo na área de administração de widgets do dashboard",
+    ],
+  },
+  {
+    version: "1.2",
+    date: "2026-05-17",
+    description: "Correções de autenticação Slack e filtros de mensagens de sistema",
+    changes: [
+      "Corrigida resolução de nomes Slack — users.info e users.lookupByEmail passaram a usar GET (requisito da API)",
+      "Mensagens de sistema do Slack (entrou no canal, etc.) filtradas do widget",
+      "Widget Slack defensivo contra formato de cache legado",
+    ],
+  },
   {
     version: "1.1",
     date: "2026-05-16",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowUp, ArrowDown, Minus, ExternalLink, CalendarDays, Cake, Megaphone, Link2, AlertCircle, Loader2, HardDrive, Calendar, Mail, CheckSquare, Clock, MapPin, Circle, CircleCheck } from "lucide-react";
+import { ArrowUp, ArrowDown, Minus, ExternalLink, CalendarDays, Cake, Megaphone, Link2, AlertCircle, Loader2, HardDrive, Calendar, Mail, CheckSquare, Clock, MapPin, Circle, CircleCheck, Hash } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import type { WidgetMeta } from "@/lib/dashboard/types";
@@ -234,6 +234,7 @@ function WidgetRenderer({ widget }: { widget: WidgetMeta }) {
     case "calendar_events": return <CalendarEventsWidget title={widget.title} widget={widget} />;
     case "tasks":           return <TasksWidget title={widget.title} widget={widget} />;
     case "drive_recent":    return <DriveRecentWidget title={widget.title} widget={widget} />;
+    case "slack_channel":   return <SlackChannelWidget title={widget.title} data={data} />;
     case "iframe_embed": {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cfg = widget.config as any;
@@ -760,6 +761,68 @@ function QuickLinksWidget({ title, data }: { title: string; data: unknown }) {
               <ExternalLink className="size-2.5 text-white" />
             </span>
             <span className="truncate">{l.label}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---- Widget: Slack Channel ---- */
+
+type SlackMessage = { ts: string; text: string; userName: string; isBot: boolean; date: string };
+type SlackChannelData = { channelId: string; teamId: string; messages: SlackMessage[] };
+
+function SlackChannelWidget({ title, data }: { title: string; data: unknown }) {
+  // compatibilidade com cache antiga (array) e novo formato (objeto)
+  const isLegacy = Array.isArray(data);
+  const channelId = isLegacy ? "" : (data as SlackChannelData)?.channelId ?? "";
+  const teamId = isLegacy ? "" : (data as SlackChannelData)?.teamId ?? "";
+  const messages: SlackMessage[] = isLegacy ? (data as SlackMessage[]) : ((data as SlackChannelData)?.messages ?? []);
+
+  function relativeTime(iso: string) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "agora";
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h`;
+    return `${Math.floor(hours / 24)}d`;
+  }
+
+  function messageUrl(ts: string) {
+    // deep link para a mensagem específica no Slack (app ou browser)
+    const tsSafe = ts.replace(".", "");
+    if (teamId && channelId) {
+      return `slack://channel?team=${teamId}&id=${channelId}&message=${tsSafe}`;
+    }
+    // fallback HTTPS se não tiver teamId
+    return `https://slack.com/archives/${channelId}/p${tsSafe}`;
+  }
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]">
+      <WidgetHeader title={title} icon={<Hash className="size-3.5 text-[#4a154b]" />} />
+      <div className="divide-y divide-[var(--border)]">
+        {messages.length === 0 && (
+          <p className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">Sem mensagens recentes.</p>
+        )}
+        {messages.map((m) => (
+          <a
+            key={m.ts}
+            href={messageUrl(m.ts)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-4 py-3 transition-colors hover:bg-[var(--muted)]"
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-xs font-semibold text-[var(--foreground)]">{m.userName}</span>
+              {m.isBot && (
+                <span className="rounded bg-[var(--muted)] px-1 py-px text-[9px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Bot</span>
+              )}
+              <span className="ml-auto text-[10px] text-[var(--muted-foreground)]">{relativeTime(m.date)}</span>
+            </div>
+            <p className="m-0 line-clamp-2 text-xs text-[var(--muted-foreground)] whitespace-pre-wrap">{m.text}</p>
           </a>
         ))}
       </div>

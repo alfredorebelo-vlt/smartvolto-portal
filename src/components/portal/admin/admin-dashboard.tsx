@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Plus, Pencil, Trash2, GripVertical, Eye, EyeOff,
   LayoutDashboard, ChevronDown, ChevronUp, Save, X, Link, Check, ShieldAlert,
@@ -40,6 +40,7 @@ const WIDGET_TYPES: { value: WidgetType; label: string; description: string }[] 
   { value: "kpi_n8n",         label: "KPI via n8n/API",   description: "Métricas via webhook externo" },
   { value: "drive_recent",    label: "Drive (recentes)",  description: "Documentos recentes do Google Drive" },
   { value: "iframe_embed",    label: "Embed externo",     description: "Página ou dashboard em iframe" },
+  { value: "slack_channel",   label: "Canal Slack",       description: "Mensagens recentes de um canal Slack" },
 ];
 
 const COL_LABELS: Record<number, string> = { 1: "Coluna principal (2/3)", 2: "Coluna lateral (1/3)" };
@@ -102,6 +103,31 @@ export function AdminDashboard() {
   const col1 = widgets.filter((w) => w.col === 1).sort((a, b) => a.order - b.order);
   const col2 = widgets.filter((w) => w.col === 2).sort((a, b) => a.order - b.order);
 
+  const dragSrc = useRef<{ col: number; idx: number } | null>(null);
+  const [dragOver, setDragOver] = useState<{ col: number; idx: number } | null>(null);
+
+  const handleDragStart = useCallback((col: number, idx: number) => {
+    dragSrc.current = { col, idx };
+  }, []);
+
+  const handleDragOver = useCallback((col: number, idx: number) => {
+    setDragOver({ col, idx });
+  }, []);
+
+  const handleDrop = useCallback((col: number, toIdx: number) => {
+    const src = dragSrc.current;
+    if (!src || src.col !== col || src.idx === toIdx) { setDragOver(null); return; }
+    const colWidgets = (col === 1 ? col1 : col2);
+    handleReorder(colWidgets, src.idx, toIdx);
+    dragSrc.current = null;
+    setDragOver(null);
+  }, [col1, col2, handleReorder]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDragEnd = useCallback(() => {
+    dragSrc.current = null;
+    setDragOver(null);
+  }, []);
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div className="flex items-center justify-between">
@@ -145,11 +171,16 @@ export function AdminDashboard() {
                     widget={w}
                     idx={idx}
                     total={items.length}
+                    isDragOver={dragOver?.col === col && dragOver?.idx === idx}
                     onToggle={() => toggleActive(w)}
                     onEdit={() => setEditing(w)}
                     onDelete={() => deleteWidget(w.id)}
                     onMoveUp={idx > 0 ? () => handleReorder(items, idx, idx - 1) : undefined}
                     onMoveDown={idx < items.length - 1 ? () => handleReorder(items, idx, idx + 1) : undefined}
+                    onDragStart={() => handleDragStart(col, idx)}
+                    onDragOver={() => handleDragOver(col, idx)}
+                    onDrop={() => handleDrop(col, idx)}
+                    onDragEnd={handleDragEnd}
                   />
                 ))}
               </div>
@@ -173,24 +204,39 @@ export function AdminDashboard() {
 /* ---- Widget Card ---- */
 
 function WidgetCard({
-  widget, idx: _idx, total: _total, onToggle, onEdit, onDelete, onMoveUp, onMoveDown,
+  widget, idx: _idx, total: _total, isDragOver,
+  onToggle, onEdit, onDelete, onMoveUp, onMoveDown,
+  onDragStart, onDragOver, onDrop, onDragEnd,
 }: {
   widget: Widget;
   idx: number;
   total: number;
+  isDragOver: boolean;
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDrop: () => void;
+  onDragEnd: () => void;
 }) {
   const typeMeta = WIDGET_TYPES.find((t) => t.value === widget.type);
 
   return (
-    <div className={cn(
-      "flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 transition-opacity",
-      !widget.isActive && "opacity-50",
-    )}>
+    <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; onDragOver(); }}
+      onDrop={(e) => { e.preventDefault(); onDrop(); }}
+      onDragEnd={onDragEnd}
+      className={cn(
+        "flex items-center gap-3 rounded-xl border bg-[var(--card)] px-4 py-3 transition-all",
+        isDragOver ? "border-[var(--vd-blue-500)] shadow-md scale-[1.01]" : "border-[var(--border)]",
+        !widget.isActive && "opacity-50",
+      )}
+    >
       <GripVertical className="size-4 shrink-0 cursor-grab text-[var(--muted-foreground)]" />
 
       <div className="flex-1 min-w-0">
@@ -296,6 +342,10 @@ function WidgetForm({
     return m ?? [{ key: "", label: "", format: "number", prefix: "", suffix: "", trendKey: "" }];
   });
 
+  // slack_channel
+  const [slackChannelId, setSlackChannelId] = useState<string>((cfg?.channelId as string) ?? "");
+  const [slackLimit, setSlackLimit] = useState<number>((cfg?.limit as number) ?? 10);
+
   function toggleRole(id: string) {
     setSelectedRoles((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -350,6 +400,8 @@ function WidgetForm({
             ...(m.trendKey.trim() ? { trendKey: m.trendKey.trim() } : {}),
           })),
         };
+      case "slack_channel":
+        return { channelId: slackChannelId.trim(), limit: slackLimit };
       default:
         return {};
     }
@@ -471,6 +523,9 @@ function WidgetForm({
             // kpi_n8n
             webhookUrl={webhookUrl} onWebhookUrl={setWebhookUrl}
             metrics={metrics} onMetrics={setMetrics}
+            // slack_channel
+            slackChannelId={slackChannelId} onSlackChannelId={setSlackChannelId}
+            slackLimit={slackLimit} onSlackLimit={setSlackLimit}
           />
 
           {configError && <p className="text-xs text-red-500">{configError}</p>}
@@ -564,6 +619,8 @@ type ConfigEditorProps = {
   links: QuickLink[]; onLinks: (v: QuickLink[]) => void;
   webhookUrl: string; onWebhookUrl: (v: string) => void;
   metrics: KpiMetric[]; onMetrics: (v: KpiMetric[]) => void;
+  slackChannelId: string; onSlackChannelId: (v: string) => void;
+  slackLimit: number; onSlackLimit: (v: number) => void;
 };
 
 const LABEL = "mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]";
@@ -875,6 +932,29 @@ function ConfigEditor(p: ConfigEditorProps) {
               <Plus className="size-3.5" /> Adicionar métrica
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (p.type === "slack_channel") {
+    return (
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+        <SectionHeader icon={Hash} label="Canal Slack" />
+        <div>
+          <label className={LABEL}>ID do canal</label>
+          <input type="text" value={p.slackChannelId}
+            onChange={(e) => p.onSlackChannelId(e.target.value)}
+            placeholder="ex: C0B4DEZ73PE"
+            className={INPUT} />
+          <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+            Deixa em branco para usar o canal definido em SLACK_CHANNEL_ID no .env
+          </p>
+        </div>
+        <div>
+          <label className={LABEL}>Número de mensagens</label>
+          <input type="number" min={1} max={50} value={p.slackLimit}
+            onChange={(e) => p.onSlackLimit(Number(e.target.value))} className={INPUT} />
         </div>
       </div>
     );

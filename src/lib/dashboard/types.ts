@@ -8,7 +8,8 @@ export type WidgetType =
   | "quick_links"
   | "kpi_n8n"
   | "drive_recent"
-  | "iframe_embed";
+  | "iframe_embed"
+  | "slack_channel";
 
 // Config por tipo — o que o admin guarda no campo `config` (JSON)
 export type AnnouncementsConfig = { limit: number };
@@ -29,6 +30,7 @@ export type KpiN8nConfig = {
 };
 export type DriveRecentConfig = { folderId?: string; limit: number };
 export type IframeEmbedConfig = { url: string; height: number };
+export type SlackChannelConfig = { channelId: string; limit: number };
 
 export type TasksConfig = { showCompleted: boolean; maxTasks: number };
 
@@ -40,7 +42,8 @@ export type WidgetConfig =
   | QuickLinksConfig
   | KpiN8nConfig
   | DriveRecentConfig
-  | IframeEmbedConfig;
+  | IframeEmbedConfig
+  | SlackChannelConfig;
 
 // Shape que o cliente recebe (sem dados — apenas metadados do widget)
 export type WidgetMeta = {
