@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { google } from "googleapis";
-import { getGoogleOAuth2 } from "@/lib/google-oauth";
+import { getGoogleOAuth2, isAuthError } from "@/lib/google-oauth";
 
 export async function GET(request: NextRequest) {
   const session = (await auth()) as Session | null;
@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
   if (!result) return NextResponse.json({ error: "auth_required" });
   const { oauth2, account } = result;
 
-  if (!(account.scope ?? "").includes("tasks")) return NextResponse.json({ error: "tasks_scope_missing" });
+  const scope = account.scope ?? "";
+  if (!scope.includes("tasks") && !scope.includes("googleapis.com/auth/tasks")) {
+    return NextResponse.json({ error: "tasks_scope_missing" });
+  }
 
   const showCompleted = request.nextUrl.searchParams.get("showCompleted") === "true";
   const maxTasks = Math.min(parseInt(request.nextUrl.searchParams.get("max") ?? "10"), 50);
@@ -69,6 +72,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ tasks: allTasks.slice(0, maxTasks) });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    if (isAuthError(msg)) return NextResponse.json({ error: "tasks_scope_missing" });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
