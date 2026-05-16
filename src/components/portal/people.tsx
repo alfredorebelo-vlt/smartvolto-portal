@@ -14,6 +14,8 @@ import {
   Shield,
   ChevronRight,
   RefreshCw,
+  Link2,
+  Cake,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import type { DirectoryUser } from "@/lib/directory";
@@ -471,7 +473,30 @@ function PersonDrawer({
               })}
             />
           ) : null}
+          {user.workLocation ? (
+            <DetailRow icon={MapPin} label="Localização" value={user.workLocation} />
+          ) : null}
         </div>
+
+        {/* Bio + links pessoais */}
+        {(user.bio || user.linkedinUrl) && (
+          <div className="flex flex-col gap-3 border-t border-[var(--border)] p-4">
+            {user.bio && (
+              <p className="m-0 text-sm leading-relaxed text-[var(--muted-foreground)]">{user.bio}</p>
+            )}
+            {user.linkedinUrl && (
+              <a
+                href={user.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-[var(--vd-blue-500)] hover:underline"
+              >
+                <Link2 className="size-4 shrink-0" />
+                <span className="truncate">{user.linkedinUrl.replace(/^https?:\/\/(www\.)?/, "")}</span>
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Manager */}
         {manager ? (

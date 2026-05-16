@@ -106,21 +106,20 @@ export function AdminUsers() {
 
       {/* Tabela */}
       <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--card)]">
-        <table className="w-full min-w-[700px] text-sm">
+        <table className="w-full min-w-[600px] text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--muted)]">
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Colaborador</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Departamento</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Estado</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Role</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Admin</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 5 }).map((_, j) => (
+                  {Array.from({ length: 4 }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 animate-pulse rounded bg-[var(--muted)]" />
                     </td>
@@ -129,7 +128,7 @@ export function AdminUsers() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">
+                <td colSpan={4} className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">
                   Nenhum utilizador encontrado.
                 </td>
               </tr>
@@ -187,37 +186,27 @@ export function AdminUsers() {
                     </td>
                     {/* Role */}
                     <td className="px-4 py-3">
-                      <div className="relative inline-block">
-                        <select
-                          value={u.roleId ?? ""}
-                          disabled={isSaving}
-                          onChange={(e) => updateUser(u.id, { roleId: e.target.value || null })}
-                          className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--foreground)] focus:outline-none cursor-pointer"
-                        >
-                          <option value="">Sem role</option>
-                          {roles.map((r) => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-[var(--muted-foreground)]" />
-                      </div>
-                    </td>
-                    {/* Admin toggle */}
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        disabled={isSaving}
-                        onClick={() => updateUser(u.id, { isAdmin: !u.isAdmin })}
-                        className={cn(
-                          "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                          u.isAdmin
-                            ? "bg-[var(--vd-orange-50)] text-[var(--vd-orange-500)]"
-                            : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]",
+                      <div className="flex items-center gap-2">
+                        <div className="relative inline-block">
+                          <select
+                            value={u.roleId ?? ""}
+                            disabled={isSaving}
+                            onChange={(e) => updateUser(u.id, { roleId: e.target.value || null })}
+                            className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--foreground)] focus:outline-none cursor-pointer"
+                          >
+                            <option value="">Sem role</option>
+                            {roles.map((r) => (
+                              <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-[var(--muted-foreground)]" />
+                        </div>
+                        {u.role?.name === "Admin" && (
+                          <span className="flex items-center gap-1 rounded-full bg-[var(--vd-orange-50)] px-2 py-0.5 text-[10px] font-semibold text-[var(--vd-orange-500)]">
+                            <Shield className="size-2.5" /> Admin
+                          </span>
                         )}
-                      >
-                        <Shield className="size-3" />
-                        {u.isAdmin ? "Admin" : "Não"}
-                      </button>
+                      </div>
                     </td>
                   </tr>
                 );

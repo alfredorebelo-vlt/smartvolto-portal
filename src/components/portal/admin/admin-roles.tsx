@@ -52,15 +52,6 @@ const PERMISSION_GROUPS: { label: string; keys: { key: string; label: string }[]
       { key: SECTIONS.ADMIN_AUDIT, label: "Ver log de auditoria" },
     ],
   },
-  {
-    label: "Dashboard — Widgets",
-    keys: [
-      { key: SECTIONS.DASHBOARD_CARD_BC,        label: "Widget Business Central" },
-      { key: SECTIONS.DASHBOARD_CARD_SESAME,    label: "Widget Sesame HR" },
-      { key: SECTIONS.DASHBOARD_CARD_PIPEDRIVE, label: "Widget Pipedrive" },
-      { key: SECTIONS.DASHBOARD_CARD_WWM,       label: "Widget WWM" },
-    ],
-  },
 ];
 
 const EMPTY_ROLE = { name: "", description: "", sections: [] as string[] };

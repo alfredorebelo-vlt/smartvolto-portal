@@ -57,9 +57,18 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
   const data: Record<string, unknown> = {};
-  if ("roleId" in body) data.roleId = body.roleId ?? null;
-  if ("isAdmin" in body) data.isAdmin = body.isAdmin;
   if ("status" in body) data.status = body.status;
+
+  if ("roleId" in body) {
+    data.roleId = body.roleId ?? null;
+    // isAdmin deriva da role: se role.name === "Admin", concede acesso à administração
+    if (body.roleId) {
+      const role = await prisma.role.findUnique({ where: { id: body.roleId }, select: { name: true } });
+      data.isAdmin = role?.name === "Admin";
+    } else {
+      data.isAdmin = false;
+    }
+  }
 
   const user = await prisma.user.update({
     where: { id: body.id },

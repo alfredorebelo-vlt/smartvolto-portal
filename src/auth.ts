@@ -108,7 +108,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (dbUser) {
             token.id = dbUser.id;
-            token.isAdmin = dbUser.isAdmin;
+            // isAdmin é derivado da role: se a role se chama "Admin", tem acesso à administração
+            token.isAdmin = dbUser.role?.name === "Admin" || dbUser.isAdmin;
             token.roleId = dbUser.roleId ?? null;
             token.givenName = dbUser.givenName;
             token.familyName = dbUser.familyName;

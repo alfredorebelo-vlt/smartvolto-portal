@@ -12,6 +12,9 @@ export type DirectoryUser = {
   isAdmin: boolean;
   suspended: boolean;
   image?: string;
+  bio?: string;
+  linkedinUrl?: string;
+  workLocation?: string;
 };
 
 export type DirectoryFilter = {

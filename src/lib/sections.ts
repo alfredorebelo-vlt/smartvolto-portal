@@ -13,10 +13,6 @@ export const NAV_SECTIONS = {
 
 // Chaves de permissão granular — funcionalidades dentro das secções
 export const SECTIONS = {
-  DASHBOARD_CARD_BC:        "dashboard.card.bc",
-  DASHBOARD_CARD_SESAME:    "dashboard.card.sesame",
-  DASHBOARD_CARD_PIPEDRIVE: "dashboard.card.pipedrive",
-  DASHBOARD_CARD_WWM:       "dashboard.card.wwm",
   ANNOUNCEMENTS_WRITE:      "announcements.write",
   MANUAL_WRITE:             "manual.write",
   DOCS_DRIVE:               "docs.drive",

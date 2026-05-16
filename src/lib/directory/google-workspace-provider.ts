@@ -107,6 +107,9 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
       isAdmin: u.isAdmin,
       suspended: u.status === "SUSPENDED",
       image: u.image ?? undefined,
+      bio: u.bio ?? undefined,
+      linkedinUrl: u.linkedinUrl ?? undefined,
+      workLocation: u.workLocation ?? undefined,
     }));
   }
 
@@ -127,6 +130,9 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
       isAdmin: u.isAdmin,
       suspended: u.status === "SUSPENDED",
       image: u.image ?? undefined,
+      bio: u.bio ?? undefined,
+      linkedinUrl: u.linkedinUrl ?? undefined,
+      workLocation: u.workLocation ?? undefined,
     };
   }
 
