@@ -5,9 +5,23 @@ export type VersionEntry = {
   changes: string[];
 };
 
-export const CURRENT_VERSION = "1.0";
+export const CURRENT_VERSION = "1.1";
 
 export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "1.1",
+    date: "2026-05-16",
+    description: "Permissões por role em links rápidos, refresh automático de tokens Google e melhorias de administração",
+    changes: [
+      "Links rápidos do dashboard com controlo de visibilidade por role individual",
+      "Refresh automático de tokens Google Workspace — elimina pedidos recorrentes de 'Renovar sessão'",
+      "isAdmin derivado automaticamente da role 'Admin' — uma única fonte de verdade",
+      "Coluna Admin removida da tabela de utilizadores; badge integrado na coluna Role",
+      "Permissões de widgets removidas do editor de roles (geridas individualmente em cada widget)",
+      "Diretório de equipa mostra bio, localização e LinkedIn do perfil do utilizador",
+      "Placeholder em artigos do manual sem versão publicada",
+    ],
+  },
   {
     version: "1.0",
     date: "2026-05-09",
