@@ -13,7 +13,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UserMenu } from "./user-menu";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -137,9 +136,6 @@ export function Sidebar({ active, onNav, mobileOpen = false, onCloseMobile }: Pr
           </div>
         )}
 
-        <div className={cn("mt-2", !isAdmin && "mt-auto")}>
-          <UserMenu onNav={(id) => onNav(id as NavId)} />
-        </div>
       </aside>
     </>
   );

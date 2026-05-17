@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "./search";
+import { UserMenu } from "./user-menu";
 
 type Props = {
   title: string;
@@ -40,17 +41,7 @@ export function Topbar({ title, subtitle, actions, onMenuClick, onNav }: Props) 
         {actions}
         <GlobalSearch onNav={onNav ?? (() => {})} />
         <ThemeToggle />
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative grid size-9 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--card)] transition-colors hover:bg-[var(--muted)]"
-        >
-          <Bell className="size-4 text-[var(--muted-foreground)]" />
-          <span
-            className="absolute right-[7px] top-[7px] size-[7px] rounded-full bg-[var(--vd-orange-500)]"
-            style={{ border: "2px solid var(--card)" }}
-          />
-        </button>
+        <UserMenu onNav={onNav} compact />
       </div>
     </div>
   );
