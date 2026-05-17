@@ -95,11 +95,14 @@ export function UserMenu({ onNav, compact = false }: { onNav?: (id: string) => v
           type="button"
           onClick={() => setOpen((v) => !v)}
           className={cn(
-            "rounded-full transition-opacity hover:opacity-80",
-            open && "opacity-80",
+            "flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[var(--muted)]",
+            open && "bg-[var(--muted)]",
           )}
         >
           {avatar}
+          <span className="hidden text-[13px] font-semibold text-[var(--foreground)] sm:block">
+            {givenName}
+          </span>
         </button>
         {dropdown}
       </div>
