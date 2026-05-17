@@ -95,10 +95,10 @@ export function Docs() {
           Documentos Internos
         </h2>
 
-        {/* Tabs — Drive pessoal só se tiver permissão */}
+        {/* Tabs — Google Drive só se tiver permissão */}
         {canDrive && (
           <div className="mt-4 flex gap-1 rounded-xl bg-[var(--muted)] p-1 w-fit">
-            {([["library", "Biblioteca"], ["recent", "Drive pessoal"]] as [Tab, string][]).map(([t, label]) => (
+            {([["library", "Biblioteca"], ["recent", "Google Drive"]] as [Tab, string][]).map(([t, label]) => (
               <button key={t} type="button" onClick={() => setTab(t)}
                 className={cn("rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors",
                   tab === t
