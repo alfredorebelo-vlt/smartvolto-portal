@@ -72,7 +72,7 @@ export function Tools() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-[var(--muted-foreground)]">
-        A carregar ferramentas…
+        A carregar Smart Tools…
       </div>
     );
   }
@@ -84,9 +84,9 @@ export function Tools() {
           <div className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-[var(--muted)]">
             <LayoutGrid className="size-5 text-[var(--muted-foreground)]" />
           </div>
-          <h3 className="m-0 text-base font-semibold text-[var(--foreground)]">Sem ferramentas disponíveis</h3>
+          <h3 className="m-0 text-base font-semibold text-[var(--foreground)]">Sem Smart Tools disponíveis</h3>
           <p className="m-0 mt-1.5 text-sm text-[var(--muted-foreground)]">
-            Ainda não tens acesso a nenhuma ferramenta. Contacta um administrador.
+            Ainda não tens acesso a nenhuma Smart Tool. Contacta um administrador.
           </p>
         </div>
       </div>
@@ -103,14 +103,14 @@ export function Tools() {
         <div className="flex items-center gap-2">
           <LayoutGrid className="size-4 text-[var(--muted-foreground)]" />
           <span className="text-sm font-medium text-[var(--foreground)]">
-            {active?.name ?? "Seleciona uma ferramenta"}
+            {active?.name ?? "Seleciona uma Smart Tool"}
           </span>
         </div>
         <ChevronDown className="size-4 text-[var(--muted-foreground)]" />
       </button>
 
       {/* Bottom sheet mobile */}
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Ferramentas">
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Smart Tools">
         <div className="p-2">
           <div className="relative mb-2 px-1">
             <Search className="absolute left-3.5 top-1/2 size-3.5 -translate-y-1/2 text-[var(--muted-foreground)]" />
@@ -170,7 +170,7 @@ export function Tools() {
             <div className="flex items-center gap-2">
               <LayoutGrid className="size-3.5 text-[var(--muted-foreground)]" />
               <span className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">
-                Ferramentas
+                Smart Tools
               </span>
             </div>
             <span className="text-[10px] text-[var(--muted-foreground)] opacity-60">{tools.length}</span>
@@ -268,7 +268,7 @@ export function Tools() {
           </>
         ) : (
           <div className="grid flex-1 place-items-center text-sm text-[var(--muted-foreground)]">
-            Seleciona uma ferramenta
+            Seleciona uma Smart Tool
           </div>
         )}
       </div>

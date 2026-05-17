@@ -25,7 +25,7 @@ const PERMISSION_GROUPS: { label: string; keys: { key: string; label: string }[]
       { key: NAV_SECTIONS.PEOPLE,   label: "Pessoas" },
       { key: NAV_SECTIONS.DOCS,     label: "Documentos" },
       { key: NAV_SECTIONS.MANUAL,   label: "Manual de operações" },
-      { key: NAV_SECTIONS.TOOLS,    label: "Ferramentas" },
+      { key: NAV_SECTIONS.TOOLS,    label: "Smart Tools" },
     ],
   },
   {

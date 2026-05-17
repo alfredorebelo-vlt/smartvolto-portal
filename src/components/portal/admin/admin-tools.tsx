@@ -86,9 +86,9 @@ export function AdminTools() {
     <div className="flex flex-col gap-6 max-w-3xl">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="m-0 text-base font-bold text-[var(--foreground)]">Ferramentas</h3>
+          <h3 className="m-0 text-base font-bold text-[var(--foreground)]">Smart Tools</h3>
           <p className="m-0 mt-0.5 text-sm text-[var(--muted-foreground)]">
-            Publica ferramentas HTML e controla o acesso por role.
+            Publica Smart Tools em HTML e controla o acesso por role.
           </p>
         </div>
         <button
@@ -96,7 +96,7 @@ export function AdminTools() {
           onClick={() => setCreating(true)}
           className="flex items-center gap-2 rounded-lg bg-[var(--vd-blue-500)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
-          <Plus className="size-4" /> Nova ferramenta
+          <Plus className="size-4" /> Nova Smart Tool
         </button>
       </div>
 
@@ -106,7 +106,7 @@ export function AdminTools() {
         </div>
       ) : tools.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--muted-foreground)]">
-          Sem ferramentas publicadas. Clica em <strong>Nova ferramenta</strong> para começar.
+          Sem Smart Tools publicadas. Clica em <strong>Nova Smart Tool</strong> para começar.
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -297,7 +297,7 @@ function ToolForm({
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
           <div className="flex items-center gap-2">
             <LayoutGrid className="size-4 text-[var(--vd-blue-500)]" />
-            <h3 className="m-0 text-base font-bold">{isEdit ? `Editar — ${tool!.name}` : "Nova ferramenta"}</h3>
+            <h3 className="m-0 text-base font-bold">{isEdit ? `Editar — ${tool!.name}` : "Nova Smart Tool"}</h3>
           </div>
           <button type="button" onClick={onClose}
             className="grid size-7 place-items-center rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
@@ -350,7 +350,7 @@ function ToolForm({
               </div>
               <label className="flex cursor-pointer items-center gap-2.5 text-sm">
                 <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="size-4 rounded" />
-                <span className="font-medium text-[var(--foreground)]">Ferramenta activa (visível para os utilizadores)</span>
+                <span className="font-medium text-[var(--foreground)]">Smart Tool activa (visível para os utilizadores)</span>
               </label>
             </div>
           )}
@@ -389,7 +389,7 @@ function ToolForm({
           {tab === "roles" && (
             <div className="flex flex-col gap-4">
               <p className="text-sm text-[var(--muted-foreground)]">
-                Selecciona quais roles têm acesso. Se não seleccionares nenhuma, a ferramenta fica visível para <strong>todos os utilizadores autenticados</strong>.
+                Selecciona quais roles têm acesso. Se não seleccionares nenhuma, a Smart Tool fica visível para <strong>todos os utilizadores autenticados</strong>.
               </p>
 
               {roles.length === 0 ? (
@@ -442,7 +442,7 @@ function ToolForm({
           <button type="button" onClick={save} disabled={saving}
             className="flex items-center gap-1.5 rounded-lg bg-[var(--vd-blue-500)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
             <Save className="size-3.5" />
-            {saving ? "A guardar…" : isEdit ? "Guardar alterações" : "Publicar ferramenta"}
+            {saving ? "A guardar…" : isEdit ? "Guardar alterações" : "Publicar Smart Tool"}
           </button>
         </div>
       </div>

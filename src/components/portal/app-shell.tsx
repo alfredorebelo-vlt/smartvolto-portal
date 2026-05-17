@@ -28,7 +28,7 @@ const SECTION_META: Record<NavId, { title: string; subtitle: string }> = {
   docs:     { title: "Documentos",           subtitle: "Repositório" },
   manual:   { title: "Manual de operações",  subtitle: "Procedimentos" },
   profile:  { title: "O meu perfil",         subtitle: "Conta" },
-  tools:    { title: "Ferramentas",          subtitle: "Stack interno" },
+  tools:    { title: "Smart Tools",          subtitle: "Ecossistema de ferramentas" },
   admin:    { title: "Administração",        subtitle: "Gestão do portal" },
 };
 
