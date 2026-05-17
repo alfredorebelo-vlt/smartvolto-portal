@@ -184,6 +184,7 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
         jobTitle: org?.title ?? undefined,
         department: org?.department ?? undefined,
         officeLocation: building?.buildingId ?? org?.location ?? undefined,
+        orgUnitPath: g.orgUnitPath ?? undefined,
         phoneNumber: workPhone?.value ?? undefined,
         managerEmail: managerRel?.value ?? undefined,
         isAdmin: g.isAdmin ?? false,
@@ -228,6 +229,7 @@ interface GWorkspaceUser {
   suspended?: boolean | null;
   isAdmin?: boolean | null;
   thumbnailPhotoUrl?: string | null;
+  orgUnitPath?: string | null;
   name?: { givenName?: string | null; familyName?: string | null } | null;
   organizations?: Array<{ title?: string | null; department?: string | null; location?: string | null }> | null;
   phones?: Array<{ value?: string | null; type?: string | null }> | null;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Mail, Phone, Building2, Briefcase, MapPin,
+  Mail, Phone, Building2, Briefcase, MapPin, Network,
   RefreshCw, Pencil, Check, X, User, ShieldCheck, Cake,
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
@@ -18,6 +18,7 @@ type ProfileUser = {
   jobTitle: string | null;
   department: string | null;
   officeLocation: string | null;
+  orgUnitPath: string | null;
   phoneNumber: string | null;
   managerEmail: string | null;
   isAdmin: boolean;
@@ -194,6 +195,7 @@ export function Profile() {
             <InfoRow icon={Mail} label="Email" value={user.email} />
             <InfoRow icon={Phone} label="Telefone" value={user.phoneNumber} />
             <InfoRow icon={Building2} label="Escritório" value={user.officeLocation} />
+            <InfoRow icon={Network} label="Base" value={user.orgUnitPath ? user.orgUnitPath.split("/").filter(Boolean).pop() ?? user.orgUnitPath : null} />
             <InfoRow icon={Briefcase} label="Gestor" value={user.managerEmail} />
           </ul>
         </section>
