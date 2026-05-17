@@ -34,7 +34,7 @@ const ITEMS: Item[] = [
   { id: "feed",     label: "Anúncios",         icon: Megaphone },
   { id: "calendar", label: "Calendário",       icon: Calendar },
   { id: "people",   label: "Pessoas",          icon: Users },
-  { id: "docs",     label: "Documentos",       icon: Folder },
+  { id: "docs",     label: "Docs Internos",    icon: Folder },
   { id: "manual",   label: "Manual operações", icon: BookOpen },
   { id: "tools",    label: "Smart Tools",      icon: LayoutGrid },
   { id: "admin",    label: "Administração",    icon: ShieldCheck, adminOnly: true },

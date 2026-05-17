@@ -91,7 +91,7 @@ export function Docs() {
         <div className="vd-eyebrow mb-1">Repositório</div>
         <h2 className="m-0 text-xl font-bold text-[var(--vd-blue-500)] dark:text-[var(--foreground)] sm:text-2xl"
           style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.015em" }}>
-          Documentos
+          Documentos Internos
         </h2>
 
         {/* Tabs */}
@@ -185,7 +185,7 @@ function LibraryView() {
       </button>
 
       {/* Bottom sheet mobile */}
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Documentos">
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Docs Internos">
         <div className="p-3 flex flex-col gap-1">
           {/* Search */}
           <div className="relative mb-2">

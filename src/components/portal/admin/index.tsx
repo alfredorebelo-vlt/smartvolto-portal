@@ -39,7 +39,7 @@ const GROUPS: TabGroup[] = [
     label: "Conteúdo",
     items: [
       { id: "feed",      label: "Feed",        icon: Megaphone },
-      { id: "docs",      label: "Documentos",  icon: FolderOpen },
+      { id: "docs",      label: "Docs Internos", icon: FolderOpen },
       { id: "manual",    label: "Manual",      icon: BookOpen },
       { id: "tools",     label: "Smart Tools",  icon: LayoutGrid },
       { id: "calendars", label: "Calendários", icon: CalendarDays },

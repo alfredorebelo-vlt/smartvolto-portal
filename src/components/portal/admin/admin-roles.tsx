@@ -23,7 +23,7 @@ const PERMISSION_GROUPS: { label: string; keys: { key: string; label: string }[]
       { key: NAV_SECTIONS.FEED,     label: "Anúncios" },
       { key: NAV_SECTIONS.CALENDAR, label: "Calendário" },
       { key: NAV_SECTIONS.PEOPLE,   label: "Pessoas" },
-      { key: NAV_SECTIONS.DOCS,     label: "Documentos" },
+      { key: NAV_SECTIONS.DOCS,     label: "Docs Internos" },
       { key: NAV_SECTIONS.MANUAL,   label: "Manual de operações" },
       { key: NAV_SECTIONS.TOOLS,    label: "Smart Tools" },
     ],
@@ -41,7 +41,7 @@ const PERMISSION_GROUPS: { label: string; keys: { key: string; label: string }[]
     ],
   },
   {
-    label: "Documentos",
+    label: "Docs Internos",
     keys: [
       { key: SECTIONS.DOCS_DRIVE, label: "Acesso ao Google Drive" },
     ],

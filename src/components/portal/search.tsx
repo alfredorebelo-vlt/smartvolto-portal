@@ -20,7 +20,7 @@ type SearchResult = {
 const TYPE_LABELS: Record<ResultType, string> = {
   person: "Pessoas",
   announcement: "Anúncios",
-  doc: "Documentos",
+  doc: "Docs Internos",
   manual: "Manual",
 };
 

@@ -25,10 +25,10 @@ const SECTION_META: Record<NavId, { title: string; subtitle: string }> = {
   feed:     { title: "Anúncios da empresa",  subtitle: "Newsroom" },
   calendar: { title: "Calendário",           subtitle: "Agenda da equipa" },
   people:   { title: "Diretório de pessoas", subtitle: "Quem é quem" },
-  docs:     { title: "Documentos",           subtitle: "Repositório" },
+  docs:     { title: "Documentos Internos",   subtitle: "Repositório" },
   manual:   { title: "Manual de operações",  subtitle: "Procedimentos" },
   profile:  { title: "O meu perfil",         subtitle: "Conta" },
-  tools:    { title: "Smart Tools",          subtitle: "Ecossistema de ferramentas" },
+  tools:    { title: "Smart Tools",          subtitle: "Stack de Ferramentas Internas" },
   admin:    { title: "Administração",        subtitle: "Gestão do portal" },
 };
 

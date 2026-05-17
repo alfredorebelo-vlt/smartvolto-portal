@@ -229,8 +229,8 @@ export function AdminDocs() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-[var(--foreground)]">Documentos</h2>
-          <p className="text-sm text-[var(--muted-foreground)]">Gerir áreas e documentos da biblioteca</p>
+          <h2 className="text-lg font-bold text-[var(--foreground)]">Documentos Internos</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">Gerir áreas e documentos da biblioteca interna</p>
         </div>
         <button type="button" onClick={() => setAreaForm({ color: "#2e3c8f", isActive: true, roleIds: [] })}
           className="flex items-center gap-2 rounded-lg bg-[var(--vd-blue-500)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">
