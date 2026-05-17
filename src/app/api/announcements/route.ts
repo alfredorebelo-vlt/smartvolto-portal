@@ -19,7 +19,17 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor") ?? undefined;
   const category = searchParams.get("category") ?? undefined;
 
-  const dbUser = await prisma.user.findUnique({ where: { email: u.email }, select: { id: true } });
+  const dbUser = await prisma.user.findUnique({ where: { email: u.email }, select: { id: true, roleId: true } });
+  const roleId: string | null = dbUser?.roleId ?? null;
+  const isAdmin: boolean = u.isAdmin ?? false;
+
+  // Helper: filter out announcements restricted to roles the user doesn't have
+  function visibleToUser(ann: { roleIds: unknown }) {
+    if (isAdmin) return true;
+    const roles = Array.isArray(ann.roleIds) ? ann.roleIds as string[] : [];
+    if (roles.length === 0) return true;
+    return roleId !== null && roles.includes(roleId);
+  }
 
   const where = {
     isPinned: false,
@@ -27,7 +37,7 @@ export async function GET(req: NextRequest) {
   };
 
   // Pinned sempre no topo (sem paginação)
-  const pinned = !cursor && !category
+  const allPinned = !cursor && !category
     ? await prisma.announcement.findMany({
         where: { isPinned: true },
         orderBy: { publishedAt: "desc" },
@@ -38,9 +48,10 @@ export async function GET(req: NextRequest) {
         },
       })
     : [];
+  const pinned = allPinned.filter(visibleToUser);
 
-  const items = await prisma.announcement.findMany({
-    take: limit + 1,
+  const allItems = await prisma.announcement.findMany({
+    take: (limit + 1) * 3, // fetch extra to account for role filtering
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where,
     orderBy: { publishedAt: "desc" },
@@ -51,8 +62,9 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const hasMore = items.length > limit;
-  const page = hasMore ? items.slice(0, limit) : items;
+  const filtered = allItems.filter(visibleToUser);
+  const hasMore = filtered.length > limit;
+  const page = hasMore ? filtered.slice(0, limit) : filtered;
   const nextCursor = hasMore ? page[page.length - 1].id : null;
 
   return NextResponse.json({ announcements: [...pinned, ...page], nextCursor });
@@ -67,7 +79,7 @@ export async function POST(req: NextRequest) {
   if (!canWrite) return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
 
   const body = (await req.json()) as {
-    title: string; content: string; category?: string; isPinned?: boolean; publishedAt?: string;
+    title: string; content: string; category?: string; isPinned?: boolean; publishedAt?: string; roleIds?: string[];
   };
   if (!body.title?.trim() || !body.content?.trim())
     return NextResponse.json({ error: "Título e conteúdo obrigatórios" }, { status: 400 });
@@ -81,6 +93,7 @@ export async function POST(req: NextRequest) {
       content: body.content.trim(),
       category: body.category ?? null,
       isPinned: body.isPinned ?? false,
+      roleIds: body.roleIds ?? [],
       authorId: dbUser.id,
       publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
     },

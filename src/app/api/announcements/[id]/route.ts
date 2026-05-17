@@ -29,13 +29,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
 
   const body = (await req.json()) as {
-    title?: string; content?: string; category?: string | null; isPinned?: boolean;
+    title?: string; content?: string; category?: string | null; isPinned?: boolean; roleIds?: string[];
   };
   const data: Record<string, unknown> = {};
   if (body.title     !== undefined) data.title    = body.title.trim();
   if (body.content   !== undefined) data.content  = body.content.trim();
   if (body.category  !== undefined) data.category = body.category;
   if (body.isPinned  !== undefined) data.isPinned = body.isPinned;
+  if (body.roleIds   !== undefined) data.roleIds  = body.roleIds;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const u = (session as any)?.user as any;

@@ -91,6 +91,8 @@ model Announcement {
   publishedAt DateTime              @default(now())
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
+  // JSON array de roleIds — vazio = visível a todos os utilizadores autenticados
+  roleIds     Json                  @default("[]")
   reactions   AnnouncementReaction[]
   comments    AnnouncementComment[]
 

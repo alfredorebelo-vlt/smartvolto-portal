@@ -21,6 +21,7 @@ type ReactionCount = { emoji: string; count: number };
 type Announcement = {
   id: string; title: string; content: string;
   category: string | null; isPinned: boolean; publishedAt: string;
+  roleIds: string[];
   author: AuthorMini;
   _count: { reactions: number; comments: number };
   reactions: { emoji: string }[]; // current user's reactions

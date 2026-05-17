@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   Users, ShieldCheck, RefreshCw, ScrollText, LayoutDashboard,
-  LayoutGrid, Megaphone, FolderOpen, CalendarDays, BookOpen,
+  LayoutGrid, Megaphone, Tag, FolderOpen, CalendarDays, BookOpen,
   ChevronRight, ChevronDown, Settings2, Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,12 +15,13 @@ import { AdminAudit } from "./admin-audit";
 import { AdminDashboard } from "./admin-dashboard";
 import { AdminTools } from "./admin-tools";
 import { AdminAnnouncementCategories } from "./admin-announcement-categories";
+import { AdminAnnouncements } from "./admin-announcements";
 import { AdminDocs } from "./admin-docs";
 import { AdminCalendars } from "./admin-calendars";
 import { AdminManual } from "./admin-manual";
 import { AdminNavOrder } from "./admin-nav-order";
 
-type Tab = "users" | "roles" | "tools" | "feed" | "docs" | "manual" | "calendars" | "dashboard" | "sync" | "audit" | "nav";
+type Tab = "users" | "roles" | "tools" | "announcements" | "feed-categories" | "docs" | "manual" | "calendars" | "dashboard" | "sync" | "audit" | "nav";
 
 type TabGroup = {
   label: string;
@@ -38,11 +39,12 @@ const GROUPS: TabGroup[] = [
   {
     label: "Conteúdo",
     items: [
-      { id: "feed",      label: "Feed",        icon: Megaphone },
-      { id: "docs",      label: "Docs Internos", icon: FolderOpen },
-      { id: "manual",    label: "Manual",      icon: BookOpen },
-      { id: "tools",     label: "Smart Tools",  icon: LayoutGrid },
-      { id: "calendars", label: "Calendários", icon: CalendarDays },
+      { id: "announcements",   label: "Anúncios",        icon: Megaphone },
+      { id: "feed-categories", label: "Categorias Feed",  icon: Tag },
+      { id: "docs",            label: "Docs Internos",    icon: FolderOpen },
+      { id: "manual",          label: "Manual",           icon: BookOpen },
+      { id: "tools",           label: "Smart Tools",      icon: LayoutGrid },
+      { id: "calendars",       label: "Calendários",      icon: CalendarDays },
     ],
   },
   {
@@ -176,7 +178,8 @@ function AdminContent({ tab }: { tab: Tab }) {
       {tab === "users"     && <AdminUsers />}
       {tab === "roles"     && <AdminRoles />}
       {tab === "tools"     && <AdminTools />}
-      {tab === "feed"      && <AdminAnnouncementCategories />}
+      {tab === "announcements"   && <AdminAnnouncements />}
+      {tab === "feed-categories" && <AdminAnnouncementCategories />}
       {tab === "docs"      && <AdminDocs />}
       {tab === "manual"    && <AdminManual />}
       {tab === "dashboard" && <AdminDashboard />}
