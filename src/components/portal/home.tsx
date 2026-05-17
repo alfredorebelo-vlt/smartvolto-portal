@@ -253,7 +253,6 @@ function WidgetRenderer({ widget }: { widget: WidgetMeta }) {
 
 type AnnouncementItem = {
   id: string; title: string; content: string; publishedAt: string;
-  author: { id: string; name: string | null; givenName: string | null; familyName: string | null; image: string | null; jobTitle: string | null };
 };
 
 function AnnouncementsWidget({ title, data }: { title: string; data: unknown }) {
@@ -266,24 +265,15 @@ function AnnouncementsWidget({ title, data }: { title: string; data: unknown }) 
           <p className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">Sem anúncios.</p>
         )}
         {items.map((a) => {
-          const authorName = a.author.givenName && a.author.familyName
-            ? `${a.author.givenName} ${a.author.familyName}` : (a.author.name ?? "");
-          const initials = getInitials(a.author.givenName ?? "", a.author.familyName ?? "");
-          const bg = getAvatarColor(a.author.id);
           const plain = a.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
           const date = new Date(a.publishedAt).toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
           return (
             <div key={a.id} className="px-4 py-3.5">
-              <div className="mb-1.5 flex items-center gap-2">
-                {a.author.image
-                  ? <img src={a.author.image} alt="" className="size-5 rounded-full object-cover" />
-                  : <span className="grid size-5 place-items-center rounded-full text-[8px] font-bold text-white" style={{ background: bg }}>{initials}</span>
-                }
-                <span className="text-xs font-semibold text-[var(--foreground)]">{authorName}</span>
-                <span className="ml-auto text-[10px] text-[var(--muted-foreground)]">{date}</span>
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <p className="m-0 text-sm font-semibold text-[var(--foreground)]">{a.title}</p>
+                <span className="shrink-0 text-[10px] text-[var(--muted-foreground)]">{date}</span>
               </div>
-              <p className="m-0 text-sm font-semibold text-[var(--foreground)]">{a.title}</p>
-              <p className="m-0 mt-0.5 line-clamp-2 text-xs text-[var(--muted-foreground)]">{plain}</p>
+              <p className="m-0 line-clamp-2 text-xs text-[var(--muted-foreground)]">{plain}</p>
             </div>
           );
         })}
