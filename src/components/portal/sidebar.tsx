@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { UserMenu } from "./user-menu";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import type { NavSectionKey } from "@/lib/sections";
 
 export type NavId = NavSectionKey;
@@ -41,15 +42,19 @@ const ITEMS: Item[] = [
 
 const DEFAULT_ORDER = ITEMS.filter((i) => !i.adminOnly).map((i) => i.id);
 
-function useNavOrder() {
+function useNavSettings() {
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER);
+  const [navRoles, setNavRoles] = useState<Record<string, string[]>>({});
   useEffect(() => {
-    fetch("/api/admin/settings?key=nav_order")
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d.value) && d.value.length > 0) setOrder(d.value); })
-      .catch(() => null);
+    Promise.all([
+      fetch("/api/admin/settings?key=nav_order").then((r) => r.json()),
+      fetch("/api/admin/settings?key=nav_roles").then((r) => r.json()),
+    ]).then(([o, r]) => {
+      if (Array.isArray(o.value) && o.value.length > 0) setOrder(o.value);
+      if (r.value && typeof r.value === "object") setNavRoles(r.value as Record<string, string[]>);
+    }).catch(() => null);
   }, []);
-  return order;
+  return { order, navRoles };
 }
 
 type Props = {
@@ -61,7 +66,9 @@ type Props = {
 
 export function Sidebar({ active, onNav, mobileOpen = false, onCloseMobile }: Props) {
   const { isAdmin, can } = usePermissions();
-  const navOrder = useNavOrder();
+  const { order: navOrder, navRoles } = useNavSettings();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roleId: string | null = (useSession().data?.user as any)?.roleId ?? null;
 
   const mainItems = navOrder
     .map((id) => ITEMS.find((item) => item.id === id))
@@ -69,6 +76,11 @@ export function Sidebar({ active, onNav, mobileOpen = false, onCloseMobile }: Pr
       if (!item) return false;
       if (item.adminOnly) return false;
       if (item.id === "home") return true;
+      // Verificar restrição de role no nav
+      const allowedRoles = navRoles[item.id] ?? [];
+      if (allowedRoles.length > 0 && !isAdmin) {
+        if (!roleId || !allowedRoles.includes(roleId)) return false;
+      }
       return can(item.id as NavSectionKey);
     });
 
