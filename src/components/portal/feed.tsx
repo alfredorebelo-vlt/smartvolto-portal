@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Megaphone, Pin } from "lucide-react";
-import { getInitials, getAvatarColor } from "@/lib/avatar";
-import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ─── */
@@ -35,8 +33,6 @@ function getCatMeta(slug: string | null, cats: Category[]) {
 /* ─── Main component ─── */
 
 export function Feed() {
-  const { data: session } = useSession();
-
   const [cats, setCats] = useState<Category[]>([]);
   const [items, setItems] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,9 +71,6 @@ export function Feed() {
       };
     }));
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const currentUserId = (session?.user as any)?.id ?? null;
 
   return (
     <div className="flex min-h-full flex-col gap-4 bg-[var(--muted)] p-4 sm:gap-5 sm:p-6 lg:p-8">
@@ -151,10 +144,6 @@ function AnnouncementCard({ announcement: a, cats, onReaction }: {
   const [myReactions, setMyReactions] = useState<string[]>(a.reactions.map((r) => r.emoji));
   const [loadingReact, setLoadingReact] = useState(false);
 
-  const authorName = a.author.givenName && a.author.familyName
-    ? `${a.author.givenName} ${a.author.familyName}` : (a.author.name ?? "—");
-  const initials = getInitials(a.author.givenName ?? "", a.author.familyName ?? "");
-  const avatarBg = getAvatarColor(a.author.id);
   const date = new Date(a.publishedAt).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" });
   const cat = getCatMeta(a.category, cats);
 
@@ -196,29 +185,15 @@ function AnnouncementCard({ announcement: a, cats, onReaction }: {
       )}
 
       <div className="p-5 sm:p-6">
-        {/* Author + meta */}
-        <div className="mb-4 flex items-start gap-3">
-          <div className="flex items-center gap-2.5">
-            {a.author.image
-              ? <img src={a.author.image} alt="" className="size-9 shrink-0 rounded-full object-cover" />
-              : <div className="grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: avatarBg }}>{initials}</div>
-            }
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-[var(--foreground)]">{authorName}</span>
-                {cat && (
-                  <span className="rounded-full px-2 py-px text-[10px] font-bold"
-                    style={{ background: cat.bg, color: cat.color }}>
-                    {cat.label}
-                  </span>
-                )}
-              </div>
-              <div className="text-[11px] text-[var(--muted-foreground)]">
-                {a.author.jobTitle ? `${a.author.jobTitle} · ` : ""}{date}
-              </div>
-            </div>
-          </div>
-
+        {/* Meta: categoria + data */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {cat && (
+            <span className="rounded-full px-2.5 py-px text-[10px] font-bold"
+              style={{ background: cat.bg, color: cat.color }}>
+              {cat.label}
+            </span>
+          )}
+          <span className="text-[11px] text-[var(--muted-foreground)]">{date}</span>
         </div>
 
         {/* Título + conteúdo */}
