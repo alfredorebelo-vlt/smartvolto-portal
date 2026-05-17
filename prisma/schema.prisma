@@ -316,3 +316,9 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

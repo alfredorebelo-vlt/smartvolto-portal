@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./user-menu";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useEffect, useState } from "react";
 import type { NavSectionKey } from "@/lib/sections";
 
 export type NavId = NavSectionKey;
@@ -34,9 +35,22 @@ const ITEMS: Item[] = [
   { id: "people",   label: "Pessoas",          icon: Users },
   { id: "docs",     label: "Documentos",       icon: Folder },
   { id: "manual",   label: "Manual operações", icon: BookOpen },
-  { id: "tools",    label: "Smart Tools",       icon: LayoutGrid },
+  { id: "tools",    label: "Smart Tools",      icon: LayoutGrid },
   { id: "admin",    label: "Administração",    icon: ShieldCheck, adminOnly: true },
 ];
+
+const DEFAULT_ORDER = ITEMS.filter((i) => !i.adminOnly).map((i) => i.id);
+
+function useNavOrder() {
+  const [order, setOrder] = useState<string[]>(DEFAULT_ORDER);
+  useEffect(() => {
+    fetch("/api/admin/settings?key=nav_order")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.value) && d.value.length > 0) setOrder(d.value); })
+      .catch(() => null);
+  }, []);
+  return order;
+}
 
 type Props = {
   active: NavId;
@@ -47,12 +61,16 @@ type Props = {
 
 export function Sidebar({ active, onNav, mobileOpen = false, onCloseMobile }: Props) {
   const { isAdmin, can } = usePermissions();
+  const navOrder = useNavOrder();
 
-  const mainItems = ITEMS.filter((item) => {
-    if (item.adminOnly) return false;
-    if (item.id === "home") return true;
-    return can(item.id as NavSectionKey);
-  });
+  const mainItems = navOrder
+    .map((id) => ITEMS.find((item) => item.id === id))
+    .filter((item): item is Item => {
+      if (!item) return false;
+      if (item.adminOnly) return false;
+      if (item.id === "home") return true;
+      return can(item.id as NavSectionKey);
+    });
 
   return (
     <>

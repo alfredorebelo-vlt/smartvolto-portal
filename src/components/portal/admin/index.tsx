@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   Users, ShieldCheck, RefreshCw, ScrollText, LayoutDashboard,
   LayoutGrid, Megaphone, FolderOpen, CalendarDays, BookOpen,
-  ChevronRight, ChevronDown, Settings2,
+  ChevronRight, ChevronDown, Settings2, Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -18,8 +18,9 @@ import { AdminAnnouncementCategories } from "./admin-announcement-categories";
 import { AdminDocs } from "./admin-docs";
 import { AdminCalendars } from "./admin-calendars";
 import { AdminManual } from "./admin-manual";
+import { AdminNavOrder } from "./admin-nav-order";
 
-type Tab = "users" | "roles" | "tools" | "feed" | "docs" | "manual" | "calendars" | "dashboard" | "sync" | "audit";
+type Tab = "users" | "roles" | "tools" | "feed" | "docs" | "manual" | "calendars" | "dashboard" | "sync" | "audit" | "nav";
 
 type TabGroup = {
   label: string;
@@ -48,6 +49,7 @@ const GROUPS: TabGroup[] = [
     label: "Sistema",
     items: [
       { id: "dashboard", label: "Dashboard",     icon: LayoutDashboard },
+      { id: "nav",       label: "Navegação",     icon: Menu },
       { id: "sync",      label: "Sincronização", icon: RefreshCw },
       { id: "audit",     label: "Auditoria",     icon: ScrollText },
     ],
@@ -179,6 +181,7 @@ function AdminContent({ tab }: { tab: Tab }) {
       {tab === "manual"    && <AdminManual />}
       {tab === "dashboard" && <AdminDashboard />}
       {tab === "calendars" && <AdminCalendars />}
+      {tab === "nav"       && <AdminNavOrder />}
       {tab === "sync"      && <AdminSync />}
       {tab === "audit"     && <AdminAudit />}
     </>
