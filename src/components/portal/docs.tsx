@@ -79,9 +79,10 @@ function timeAgo(iso: string | null): string {
 export function Docs() {
   const { can, isAdmin } = usePermissions();
   const canDrive = isAdmin || can(SECTIONS.DOCS_DRIVE);
-  const canLibrary = isAdmin || can(SECTIONS.DOCS_LIBRARY);
+  // Biblioteca visível a todos que acedem à secção docs
+  const canLibrary = true;
 
-  const defaultTab: Tab = canLibrary ? "library" : "recent";
+  const defaultTab: Tab = "library";
   const [tab, setTab] = useState<Tab>(defaultTab);
 
   return (
@@ -94,8 +95,8 @@ export function Docs() {
           Documentos Internos
         </h2>
 
-        {/* Tabs */}
-        {canLibrary && canDrive && (
+        {/* Tabs — Drive pessoal só se tiver permissão */}
+        {canDrive && (
           <div className="mt-4 flex gap-1 rounded-xl bg-[var(--muted)] p-1 w-fit">
             {([["library", "Biblioteca"], ["recent", "Drive pessoal"]] as [Tab, string][]).map(([t, label]) => (
               <button key={t} type="button" onClick={() => setTab(t)}
@@ -110,7 +111,7 @@ export function Docs() {
         )}
       </section>
 
-      {tab === "library" && canLibrary && <LibraryView />}
+      {tab === "library" && <LibraryView />}
       {tab === "recent" && canDrive && <RecentView />}
 
       {!canLibrary && !canDrive && (
