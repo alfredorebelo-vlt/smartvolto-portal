@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Mail, Phone, Building2, Briefcase, MapPin, Link2,
+  Mail, Phone, Building2, Briefcase, MapPin,
   RefreshCw, Pencil, Check, X, User, ShieldCheck, Cake,
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
@@ -23,16 +23,12 @@ type ProfileUser = {
   isAdmin: boolean;
   status: string;
   lastSyncedAt: string | null;
-  bio: string | null;
-  linkedinUrl: string | null;
   workLocation: string | null;
   dateOfBirth: string | null;
   role: { id: string; name: string; description: string | null } | null;
 };
 
 type EditableFields = {
-  bio: string;
-  linkedinUrl: string;
   workLocation: string;
   dateOfBirth: string;
 };
@@ -41,7 +37,7 @@ export function Profile() {
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<EditableFields>({ bio: "", linkedinUrl: "", workLocation: "", dateOfBirth: "" });
+  const [form, setForm] = useState<EditableFields>({ workLocation: "", dateOfBirth: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,8 +48,6 @@ export function Profile() {
       const data = await res.json();
       setUser(data.user);
       setForm({
-        bio: data.user.bio ?? "",
-        linkedinUrl: data.user.linkedinUrl ?? "",
         workLocation: data.user.workLocation ?? "",
         dateOfBirth: data.user.dateOfBirth ? data.user.dateOfBirth.split("T")[0] : "",
       });
@@ -66,8 +60,6 @@ export function Profile() {
   function startEdit() {
     if (!user) return;
     setForm({
-      bio: user.bio ?? "",
-      linkedinUrl: user.linkedinUrl ?? "",
       workLocation: user.workLocation ?? "",
       dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
     });
@@ -249,34 +241,6 @@ export function Profile() {
             <div className="flex flex-col gap-3">
               <div>
                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                  Apresentação
-                </label>
-                <textarea
-                  rows={4}
-                  maxLength={300}
-                  placeholder="Escreve uma breve apresentação…"
-                  value={form.bio}
-                  onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
-                  className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-                />
-                <p className="mt-0.5 text-right text-[10px] text-[var(--muted-foreground)]">
-                  {form.bio.length}/300
-                </p>
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                  LinkedIn
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://linkedin.com/in/..."
-                  value={form.linkedinUrl}
-                  onChange={(e) => setForm((p) => ({ ...p, linkedinUrl: e.target.value }))}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
                   Localização
                 </label>
                 <input
@@ -302,40 +266,22 @@ export function Profile() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {user.bio ? (
-                <p className="m-0 text-sm leading-relaxed text-[var(--muted-foreground)]">{user.bio}</p>
-              ) : (
-                <p className="m-0 text-sm italic text-[var(--muted-foreground)]/60">Sem apresentação. Clica em Editar para adicionar.</p>
+            <div className="flex flex-col gap-2.5">
+              {user.workLocation && (
+                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                  <MapPin className="size-4 shrink-0" />
+                  <span>{user.workLocation}</span>
+                </div>
               )}
-              <div className="mt-1 flex flex-col gap-2.5 border-t border-[var(--border)] pt-3">
-                {user.linkedinUrl && (
-                  <a
-                    href={user.linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm font-medium text-[var(--vd-blue-500)] hover:underline"
-                  >
-                    <Link2 className="size-4 shrink-0" />
-                    <span className="truncate">{user.linkedinUrl.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                  </a>
-                )}
-                {user.workLocation && (
-                  <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                    <MapPin className="size-4 shrink-0" />
-                    <span>{user.workLocation}</span>
-                  </div>
-                )}
-                {user.dateOfBirth && (
-                  <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                    <Cake className="size-4 shrink-0" />
-                    <span>{new Date(user.dateOfBirth).toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</span>
-                  </div>
-                )}
-                {!user.linkedinUrl && !user.workLocation && !user.dateOfBirth && (
-                  <p className="m-0 text-xs italic text-[var(--muted-foreground)]/60">Sem dados adicionais.</p>
-                )}
-              </div>
+              {user.dateOfBirth && (
+                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                  <Cake className="size-4 shrink-0" />
+                  <span>{new Date(user.dateOfBirth).toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</span>
+                </div>
+              )}
+              {!user.workLocation && !user.dateOfBirth && (
+                <p className="m-0 text-xs italic text-[var(--muted-foreground)]/60">Sem dados adicionais. Clica em Editar para adicionar.</p>
+              )}
             </div>
           )}
         </section>
