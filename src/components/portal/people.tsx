@@ -13,21 +13,13 @@ import {
   Calendar,
   Shield,
   ChevronRight,
-  RefreshCw,
-  Link2,
-  Cake,
   Hash,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import type { DirectoryUser } from "@/lib/directory";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 export function People() {
-  const { data: session } = useSession();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isAdmin = (session?.user as any)?.isAdmin ?? false;
-
   const [users, setUsers] = useState<DirectoryUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -35,9 +27,6 @@ export function People() {
   const [office, setOffice] = useState<string>("");
   const [selected, setSelected] = useState<DirectoryUser | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-
   const loadUsers = (signal?: AbortSignal) => {
     setLoading(true);
     fetch("/api/directory/users?status=active", { signal })
@@ -55,25 +44,6 @@ export function People() {
     return () => ctrl.abort();
   }, []);
 
-  async function handleSync() {
-    setSyncing(true);
-    setSyncMsg(null);
-    try {
-      const res = await fetch("/api/directory/sync", { method: "POST" });
-      const data = (await res.json()) as { synced?: number; error?: string };
-      if (res.ok && data.synced !== undefined) {
-        setSyncMsg({ type: "ok", text: `${data.synced} utilizadores sincronizados` });
-        loadUsers();
-      } else {
-        setSyncMsg({ type: "err", text: data.error ?? "Erro ao sincronizar" });
-      }
-    } catch {
-      setSyncMsg({ type: "err", text: "Erro de rede" });
-    } finally {
-      setSyncing(false);
-    }
-  }
-
   const departments = useMemo(() => {
     const set = new Set<string>();
     users.forEach((u) => u.department && set.add(u.department));
@@ -82,14 +52,26 @@ export function People() {
 
   const offices = useMemo(() => {
     const set = new Set<string>();
-    users.forEach((u) => u.officeLocation && set.add(u.officeLocation));
+    users.forEach((u) => {
+      if (u.orgUnitPath) {
+        const segment = u.orgUnitPath.split("/").filter(Boolean).pop();
+        if (segment) set.add(segment);
+      } else if (u.officeLocation) {
+        set.add(u.officeLocation);
+      }
+    });
     return Array.from(set).sort((a, b) => a.localeCompare(b, "pt"));
   }, [users]);
 
   const filtered = useMemo(() => {
     return users.filter((u) => {
       if (department && u.department !== department) return false;
-      if (office && u.officeLocation !== office) return false;
+      if (office) {
+        const userBase = u.orgUnitPath
+          ? u.orgUnitPath.split("/").filter(Boolean).pop()
+          : u.officeLocation;
+        if (userBase !== office) return false;
+      }
       if (search) {
         const q = search.toLowerCase();
         const haystack = [
@@ -128,31 +110,6 @@ export function People() {
               Diretório da equipa
             </h2>
           </div>
-          {isAdmin ? (
-            <div className="flex flex-col items-start gap-1 sm:items-end">
-              <button
-                type="button"
-                onClick={handleSync}
-                disabled={syncing}
-                className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] disabled:opacity-60"
-              >
-                <RefreshCw className={cn("size-3.5", syncing && "animate-spin")} />
-                {syncing ? "A sincronizar…" : "Sincronizar Workspace"}
-              </button>
-              {syncMsg ? (
-                <span
-                  className={cn(
-                    "text-xs font-medium",
-                    syncMsg.type === "ok"
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400",
-                  )}
-                >
-                  {syncMsg.text}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
         </div>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -499,8 +456,16 @@ function PersonDrawer({
           {user.jobTitle ? (
             <DetailRow icon={Briefcase} label="Cargo" value={user.jobTitle} />
           ) : null}
-          {user.officeLocation ? (
-            <DetailRow icon={MapPin} label="Base" value={user.officeLocation} />
+          {(user.orgUnitPath || user.officeLocation) ? (
+            <DetailRow
+              icon={MapPin}
+              label="Base"
+              value={
+                user.orgUnitPath
+                  ? user.orgUnitPath.split("/").filter(Boolean).pop() ?? user.orgUnitPath
+                  : user.officeLocation!
+              }
+            />
           ) : null}
           {user.startDate ? (
             <DetailRow
@@ -513,30 +478,8 @@ function PersonDrawer({
               })}
             />
           ) : null}
-          {user.workLocation ? (
-            <DetailRow icon={MapPin} label="Localização" value={user.workLocation} />
-          ) : null}
         </div>
 
-        {/* Bio + links pessoais */}
-        {(user.bio || user.linkedinUrl) && (
-          <div className="flex flex-col gap-3 border-t border-[var(--border)] p-4">
-            {user.bio && (
-              <p className="m-0 text-sm leading-relaxed text-[var(--muted-foreground)]">{user.bio}</p>
-            )}
-            {user.linkedinUrl && (
-              <a
-                href={user.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-medium text-[var(--vd-blue-500)] hover:underline"
-              >
-                <Link2 className="size-4 shrink-0" />
-                <span className="truncate">{user.linkedinUrl.replace(/^https?:\/\/(www\.)?/, "")}</span>
-              </a>
-            )}
-          </div>
-        )}
 
         {/* Manager */}
         {manager ? (

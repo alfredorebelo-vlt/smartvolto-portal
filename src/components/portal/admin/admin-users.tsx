@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Shield, RefreshCw, ChevronDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Shield, RefreshCw, ChevronDown, Cake, Save, X, MapPin } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,9 @@ type AdminUser = {
   image: string | null;
   jobTitle: string | null;
   department: string | null;
+  officeLocation: string | null;
+  orgUnitPath: string | null;
+  dateOfBirth: string | null;
   isAdmin: boolean;
   status: string;
   roleId: string | null;
@@ -41,6 +44,8 @@ export function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dobEdit, setDobEdit] = useState<Record<string, string>>({});
 
   async function load() {
     setLoading(true);
@@ -57,7 +62,7 @@ export function AdminUsers() {
 
   useEffect(() => { load(); }, []);
 
-  async function updateUser(id: string, patch: Partial<Pick<AdminUser, "roleId" | "isAdmin" | "status">>) {
+  async function updateUser(id: string, patch: Record<string, unknown>) {
     setSaving(id);
     const res = await fetch("/api/admin/users", {
       method: "PATCH",
@@ -71,6 +76,20 @@ export function AdminUsers() {
     setSaving(null);
   }
 
+  async function saveDob(u: AdminUser) {
+    const val = dobEdit[u.id] ?? "";
+    await updateUser(u.id, { dateOfBirth: val || null });
+    setExpandedId(null);
+  }
+
+  function openDob(u: AdminUser) {
+    setDobEdit((prev) => ({
+      ...prev,
+      [u.id]: u.dateOfBirth ? u.dateOfBirth.split("T")[0] : "",
+    }));
+    setExpandedId((prev) => (prev === u.id ? null : u.id));
+  }
+
   const filtered = users.filter((u) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -78,9 +97,12 @@ export function AdminUsers() {
       (u.givenName ?? "").toLowerCase().includes(q) ||
       (u.familyName ?? "").toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
-      (u.department ?? "").toLowerCase().includes(q)
+      (u.department ?? "").toLowerCase().includes(q) ||
+      (u.jobTitle ?? "").toLowerCase().includes(q)
     );
   });
+
+  const COLS = 6;
 
   return (
     <div className="flex flex-col gap-4">
@@ -88,10 +110,10 @@ export function AdminUsers() {
       <div className="flex items-center justify-between gap-3">
         <input
           type="text"
-          placeholder="Filtrar por nome, email ou departamento…"
+          placeholder="Filtrar por nome, email, cargo ou departamento…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-xs rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+          className="w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
         />
         <button
           type="button"
@@ -106,20 +128,22 @@ export function AdminUsers() {
 
       {/* Tabela */}
       <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--card)]">
-        <table className="w-full min-w-[600px] text-sm">
+        <table className="w-full min-w-[800px] text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--muted)]">
-              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Colaborador</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Departamento</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Utilizador</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Estado</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Role</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Aniversário</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Base</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Cargo / Departamento</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 4 }).map((_, j) => (
+                  {Array.from({ length: COLS }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 animate-pulse rounded bg-[var(--muted)]" />
                     </td>
@@ -128,7 +152,7 @@ export function AdminUsers() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">
+                <td colSpan={COLS} className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">
                   Nenhum utilizador encontrado.
                 </td>
               </tr>
@@ -137,9 +161,13 @@ export function AdminUsers() {
                 const initials = getInitials(u.givenName ?? "", u.familyName ?? "");
                 const avatarBg = getAvatarColor(u.email);
                 const isSaving = saving === u.id;
+                const base = u.orgUnitPath
+                  ? u.orgUnitPath.split("/").filter(Boolean).pop() ?? u.orgUnitPath
+                  : u.officeLocation ?? null;
                 return (
-                  <tr key={u.id} className={cn("transition-colors hover:bg-[var(--muted)]/50", isSaving && "opacity-60")}>
-                    {/* Utilizador */}
+                  <React.Fragment key={u.id}>
+                  <tr className={cn("transition-colors", isSaving && "opacity-60")}>
+                    {/* Colaborador */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         {u.image ? (
@@ -160,10 +188,6 @@ export function AdminUsers() {
                           <div className="truncate text-[11px] text-[var(--muted-foreground)]">{u.email}</div>
                         </div>
                       </div>
-                    </td>
-                    {/* Departamento */}
-                    <td className="px-4 py-3 text-[var(--muted-foreground)]">
-                      {u.department ?? "—"}
                     </td>
                     {/* Estado */}
                     <td className="px-4 py-3">
@@ -208,7 +232,69 @@ export function AdminUsers() {
                         )}
                       </div>
                     </td>
+                    {/* Aniversário */}
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => openDob(u)}
+                        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2 py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] transition-colors"
+                      >
+                        <Cake className="size-3" />
+                        {u.dateOfBirth
+                          ? new Date(u.dateOfBirth).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })
+                          : "—"}
+                      </button>
+                    </td>
+                    {/* Base */}
+                    <td className="px-4 py-3">
+                      {base ? (
+                        <span className="flex items-center gap-1 text-[var(--muted-foreground)]">
+                          <MapPin className="size-3 shrink-0" />
+                          {base}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--muted-foreground)]">—</span>
+                      )}
+                    </td>
+                    {/* Cargo / Departamento */}
+                    <td className="px-4 py-3">
+                      <div className="truncate font-medium text-[var(--foreground)]">{u.jobTitle ?? "—"}</div>
+                      {u.department && (
+                        <div className="truncate text-[11px] text-[var(--muted-foreground)]">{u.department}</div>
+                      )}
+                    </td>
                   </tr>
+                  {expandedId === u.id && (
+                    <tr className="bg-[var(--muted)]/40">
+                      <td colSpan={COLS} className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-[var(--muted-foreground)]">Data de nascimento</span>
+                          <input
+                            type="date"
+                            value={dobEdit[u.id] ?? ""}
+                            onChange={(e) => setDobEdit((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-2.5 py-1.5 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveDob(u)}
+                            disabled={isSaving}
+                            className="flex items-center gap-1.5 rounded-lg bg-[var(--vd-blue-500)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                          >
+                            <Save className="size-3" /> Guardar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedId(null)}
+                            className="grid size-7 place-items-center rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 );
               })
             )}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ScrollText, Filter, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { ScrollText, Filter, ChevronDown, ChevronRight, RefreshCw, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type AuditLog = {
@@ -66,6 +66,29 @@ export function AdminAudit() {
     return q.toString();
   }, [filterEntity, filterAction, filterSince, filterUntil]);
 
+  function exportCsv() {
+    const header = ["Data", "Utilizador", "Email", "Ação", "Entidade", "ID Entidade", "Detalhe"];
+    const rows = logs.map((log) => [
+      new Date(log.createdAt).toLocaleString("pt-PT"),
+      log.userName ?? "",
+      log.userEmail ?? "",
+      log.action,
+      ENTITY_LABELS[log.entity] ?? log.entity,
+      log.entityId ?? "",
+      formatMetaSummary(log),
+    ]);
+    const csv = [header, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `auditoria-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const load = useCallback(async (cursor?: string) => {
     if (cursor) setLoadingMore(true); else setLoading(true);
     const res = await fetch(`/api/admin/audit?${buildQuery(cursor)}`);
@@ -86,13 +109,23 @@ export function AdminAudit() {
           <ScrollText className="size-4 text-[var(--muted-foreground)]" />
           <h3 className="m-0 text-sm font-bold text-[var(--foreground)]">Log de auditoria</h3>
         </div>
-        <button
-          type="button"
-          onClick={() => load()}
-          className="ml-auto flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-        >
-          <RefreshCw className={cn("size-3", loading && "animate-spin")} /> Atualizar
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={logs.length === 0}
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-40"
+          >
+            <Download className="size-3" /> Exportar CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => load()}
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+          >
+            <RefreshCw className={cn("size-3", loading && "animate-spin")} /> Atualizar
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -176,9 +209,8 @@ export function AdminAudit() {
                 });
                 const summary = formatMetaSummary(log);
                 return (
-                  <>
+                  <React.Fragment key={log.id}>
                     <tr
-                      key={log.id}
                       onClick={() => setExpandedId(expanded ? null : log.id)}
                       className="cursor-pointer border-t border-[var(--border)] hover:bg-[var(--muted)]/40"
                     >
@@ -207,7 +239,7 @@ export function AdminAudit() {
                       </td>
                     </tr>
                     {expanded && (
-                      <tr key={`${log.id}-details`} className="border-t border-[var(--border)] bg-[var(--muted)]/30">
+                      <tr className="border-t border-[var(--border)] bg-[var(--muted)]/30">
                         <td colSpan={6} className="px-4 py-3">
                           <div className="grid gap-2 sm:grid-cols-2">
                             <DetailField label="ID do registo" value={log.id} mono />
@@ -226,7 +258,7 @@ export function AdminAudit() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </tbody>

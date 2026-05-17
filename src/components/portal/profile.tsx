@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Mail, Phone, Building2, Briefcase, MapPin, Network,
+  Mail, Phone, Building2, Briefcase, Network,
   RefreshCw, Pencil, Check, X, User, ShieldCheck, Cake,
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/avatar";
@@ -24,13 +24,11 @@ type ProfileUser = {
   isAdmin: boolean;
   status: string;
   lastSyncedAt: string | null;
-  workLocation: string | null;
   dateOfBirth: string | null;
   role: { id: string; name: string; description: string | null } | null;
 };
 
 type EditableFields = {
-  workLocation: string;
   dateOfBirth: string;
 };
 
@@ -38,7 +36,7 @@ export function Profile() {
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<EditableFields>({ workLocation: "", dateOfBirth: "" });
+  const [form, setForm] = useState<EditableFields>({ dateOfBirth: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +47,6 @@ export function Profile() {
       const data = await res.json();
       setUser(data.user);
       setForm({
-        workLocation: data.user.workLocation ?? "",
         dateOfBirth: data.user.dateOfBirth ? data.user.dateOfBirth.split("T")[0] : "",
       });
     }
@@ -61,7 +58,6 @@ export function Profile() {
   function startEdit() {
     if (!user) return;
     setForm({
-      workLocation: user.workLocation ?? "",
       dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
     });
     setError(null);
@@ -243,19 +239,6 @@ export function Profile() {
             <div className="flex flex-col gap-3">
               <div>
                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                  Localização
-                </label>
-                <input
-                  type="text"
-                  placeholder="ex: Lisboa, Remote…"
-                  maxLength={100}
-                  value={form.workLocation}
-                  onChange={(e) => setForm((p) => ({ ...p, workLocation: e.target.value }))}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]/30"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
                   Data de nascimento
                 </label>
                 <input
@@ -269,20 +252,14 @@ export function Profile() {
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {user.workLocation && (
-                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                  <MapPin className="size-4 shrink-0" />
-                  <span>{user.workLocation}</span>
-                </div>
-              )}
               {user.dateOfBirth && (
                 <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                   <Cake className="size-4 shrink-0" />
                   <span>{new Date(user.dateOfBirth).toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</span>
                 </div>
               )}
-              {!user.workLocation && !user.dateOfBirth && (
-                <p className="m-0 text-xs italic text-[var(--muted-foreground)]/60">Sem dados adicionais. Clica em Editar para adicionar.</p>
+              {!user.dateOfBirth && (
+                <p className="m-0 text-xs italic text-[var(--muted-foreground)]/60">Sem data de nascimento. Clica em Editar para adicionar.</p>
               )}
             </div>
           )}

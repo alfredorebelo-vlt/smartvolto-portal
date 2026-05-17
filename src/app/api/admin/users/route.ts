@@ -29,8 +29,11 @@ export async function GET() {
       image: true,
       jobTitle: true,
       department: true,
+      officeLocation: true,
+      orgUnitPath: true,
       isAdmin: true,
       status: true,
+      dateOfBirth: true,
       lastSyncedAt: true,
       roleId: true,
       role: { select: { id: true, name: true } },
@@ -51,6 +54,7 @@ export async function PATCH(req: NextRequest) {
     roleId?: string | null;
     isAdmin?: boolean;
     status?: string;
+    dateOfBirth?: string | null;
   };
 
   if (!body.id)
@@ -58,6 +62,14 @@ export async function PATCH(req: NextRequest) {
 
   const data: Record<string, unknown> = {};
   if ("status" in body) data.status = body.status;
+  if ("dateOfBirth" in body) {
+    if (!body.dateOfBirth) {
+      data.dateOfBirth = null;
+    } else {
+      const parsed = new Date(body.dateOfBirth);
+      if (!isNaN(parsed.getTime())) data.dateOfBirth = parsed;
+    }
+  }
 
   if ("roleId" in body) {
     data.roleId = body.roleId ?? null;

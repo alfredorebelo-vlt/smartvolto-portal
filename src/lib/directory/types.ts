@@ -11,6 +11,7 @@ export type DirectoryUser = {
   startDate?: Date;
   isAdmin: boolean;
   suspended: boolean;
+  orgUnitPath?: string;
   image?: string;
   bio?: string;
   linkedinUrl?: string;
