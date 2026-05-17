@@ -177,6 +177,8 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
         }
       }
 
+      const orgUnitPath = g.orgUnitPath ?? null;
+
       const data = {
         name: fullName,
         givenName,
@@ -186,7 +188,6 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
         jobTitle: org?.title ?? undefined,
         department: org?.department ?? undefined,
         officeLocation: building?.buildingId ?? org?.location ?? undefined,
-        orgUnitPath: g.orgUnitPath ?? undefined,
         phoneNumber: workPhone?.value ?? undefined,
         managerEmail: managerRel?.value ?? undefined,
         isAdmin: g.isAdmin ?? false,
@@ -200,6 +201,13 @@ export class GoogleWorkspaceDirectoryProvider implements DirectoryProvider {
         create: { email, ...data },
         update: data,
       });
+
+      // orgUnitPath escrito via raw SQL para compatibilidade com builds antigos do Prisma client
+      try {
+        await prisma.$executeRaw`UPDATE \`user\` SET \`orgUnitPath\` = ${orgUnitPath} WHERE \`email\` = ${email}`;
+      } catch {
+        // coluna ainda não existe na DB — ignorar silenciosamente
+      }
 
       count++;
     }
