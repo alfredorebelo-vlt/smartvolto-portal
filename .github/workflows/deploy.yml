@@ -17,63 +17,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Gerar cliente Prisma
-        run: npx prisma generate
-
-      - name: Build Next.js
-        run: npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          AUTH_TRUST_HOST: 'true'
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          GOOGLE_WORKSPACE_ADMIN_EMAIL: ${{ secrets.GOOGLE_WORKSPACE_ADMIN_EMAIL }}
-          GOOGLE_WORKSPACE_CLIENT_EMAIL: ${{ secrets.GOOGLE_WORKSPACE_CLIENT_EMAIL }}
-          GOOGLE_WORKSPACE_PRIVATE_KEY: ${{ secrets.GOOGLE_WORKSPACE_PRIVATE_KEY }}
-          GOOGLE_WORKSPACE_DOMAIN: ${{ secrets.GOOGLE_WORKSPACE_DOMAIN }}
-
-      - name: Preparar e publicar branch deploy
+      - name: Sincronizar main -> deploy
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Guardar o .next gerado e o .cpanel.yml antes de mudar de branch
-          cp -r .next/. /tmp/next-build
-          cp .cpanel.yml /tmp/cpanel.yml
-
-          # Fazer checkout do branch deploy (incremental — fast-forward sempre)
           git fetch origin deploy
-          git checkout deploy
-
-          # Repor todos os ficheiros source do main
-          git checkout main -- .
-
-          # Forçar cópia do .cpanel.yml (sobrescreve o que veio do main)
-          cp /tmp/cpanel.yml .cpanel.yml
-
-          # Restaurar o .next do build
-          mkdir -p .next
-          cp -r /tmp/next-build/. .next/
-
-          # Remover .next do .gitignore para incluir o build
-          sed -i '/.next/d' .gitignore
-
-          # Forçar inclusão do .cpanel.yml
-          git add -f .cpanel.yml
-
-          # Commit incremental em cima do deploy anterior
-          git add -A
-          git diff --cached --quiet || git commit -m "deploy: build $(date -u '+%Y-%m-%d %H:%M') UTC [skip ci]"
-
+          git checkout -B deploy origin/deploy
+          git merge -X theirs main --no-edit
           git push origin deploy
