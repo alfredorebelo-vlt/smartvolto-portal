@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/admin/seed-manual/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"C:\\VoltoDrive Apps\\smartvolto portal\\src\\app\\api\\admin\\seed-manual\\route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

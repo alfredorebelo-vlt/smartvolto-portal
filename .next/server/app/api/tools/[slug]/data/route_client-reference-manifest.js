@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/tools/[slug]/data/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"C:\\VoltoDrive Apps\\smartvolto portal\\src\\app\\api\\tools\\[slug]\\data\\route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

@@ -7,8 +7,10 @@
 # testing
 /coverage
 
-# next.js
-/.next/
+# next.js — ignore dev/cache; commit production artefacts
+/.next/cache/
+/.next/dev/
+/.next/trace
 /out/
 
 # production
