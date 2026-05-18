@@ -4,7 +4,6 @@ deployment:
     - export DEPLOYPATH=/home/voltodrive/smartvolto-portal-repo2
     - cd $DEPLOYPATH && git config core.fileMode false
     - cd $DEPLOYPATH && git checkout -- .
-    - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo2/20/bin/activate && npm ci
+    - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo2/20/bin/activate && npm ci --omit=dev
     - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo2/20/bin/activate && npx prisma generate
-    - cd $DEPLOYPATH && source /home/voltodrive/nodevenv/smartvolto-portal-repo2/20/bin/activate && npm run build
     - cd $DEPLOYPATH && mkdir -p tmp && touch tmp/restart.txt
