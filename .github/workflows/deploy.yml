@@ -28,12 +28,16 @@ jobs:
           git checkout -B deploy origin/deploy
           git merge -X theirs main --no-edit
 
-          # Debug: verificar se o secret chegou
-          echo "ENV_PRODUCTION length: $(printf '%s' "$ENV_PRODUCTION" | wc -c)"
-
           # Injectar variáveis de ambiente de produção a partir do secret
-          printf '%s' "$ENV_PRODUCTION" > .env.production
-          git add -f .env.production
-          git diff --staged --quiet || git commit -m "ci: inject .env.production from secrets"
+          if [ -n "$ENV_PRODUCTION" ]; then
+            echo "ENV_PRODUCTION secret encontrado ($(printf '%s' "$ENV_PRODUCTION" | wc -c) bytes)"
+            printf '%s' "$ENV_PRODUCTION" > .env.production
+            git add -f .env.production
+            git diff --staged --quiet || git commit -m "ci: inject .env.production from secrets"
+          else
+            echo "ENV_PRODUCTION secret vazio — a remover .env.production do branch deploy para não sobrescrever ficheiro manual no servidor"
+            git rm --cached .env.production 2>/dev/null || true
+            git diff --staged --quiet || git commit -m "ci: remove empty .env.production from deploy branch"
+          fi
 
           git push origin deploy
