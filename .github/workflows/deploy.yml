@@ -28,7 +28,7 @@ jobs:
 
           # Injectar variáveis de ambiente de produção a partir do secret
           echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
-          git add .env.production
+          git add -f .env.production
           git diff --staged --quiet || git commit -m "ci: inject .env.production from secrets"
 
           git push origin deploy
