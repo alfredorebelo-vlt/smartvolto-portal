@@ -18,6 +18,8 @@ jobs:
           fetch-depth: 0
 
       - name: Sincronizar main -> deploy com .env.production
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -27,7 +29,7 @@ jobs:
           git merge -X theirs main --no-edit
 
           # Injectar variáveis de ambiente de produção a partir do secret
-          echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
+          printf '%s' "$ENV_PRODUCTION" > .env.production
           git add -f .env.production
           git diff --staged --quiet || git commit -m "ci: inject .env.production from secrets"
 
