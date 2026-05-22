@@ -32,6 +32,7 @@
   "/api/calendar/events/route": "app/api/calendar/events/route.js",
   "/api/dashboard/widgets/[id]/data/route": "app/api/dashboard/widgets/[id]/data/route.js",
   "/api/dashboard/widgets/route": "app/api/dashboard/widgets/route.js",
+  "/api/debug/env/route": "app/api/debug/env/route.js",
   "/api/directory/slack-user/route": "app/api/directory/slack-user/route.js",
   "/api/directory/sync/route": "app/api/directory/sync/route.js",
   "/api/directory/users/route": "app/api/directory/users/route.js",

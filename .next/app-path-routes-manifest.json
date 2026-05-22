@@ -32,6 +32,7 @@
   "/api/calendar/events/route": "/api/calendar/events",
   "/api/dashboard/widgets/[id]/data/route": "/api/dashboard/widgets/[id]/data",
   "/api/dashboard/widgets/route": "/api/dashboard/widgets",
+  "/api/debug/env/route": "/api/debug/env",
   "/api/directory/slack-user/route": "/api/directory/slack-user",
   "/api/directory/sync/route": "/api/directory/sync",
   "/api/directory/users/route": "/api/directory/users",

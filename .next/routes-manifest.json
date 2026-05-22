@@ -299,6 +299,12 @@
       "namedRegex": "^/api/dashboard/widgets(?:/)?$"
     },
     {
+      "page": "/api/debug/env",
+      "regex": "^/api/debug/env(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/debug/env(?:/)?$"
+    },
+    {
       "page": "/api/directory/slack-user",
       "regex": "^/api/directory/slack\\-user(?:/)?$",
       "routeKeys": {},

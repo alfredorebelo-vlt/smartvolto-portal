@@ -1,5 +1,5 @@
 var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/admin/seed-manual/route.js")
-R.c("server/chunks/[root-of-the-server]__0f3foca._.js")
+R.c("server/chunks/[root-of-the-server]__0kubvzx._.js")
 R.c("server/chunks/node_modules_next_dist_esm_build_templates_app-route_0jmql.p.js")
 R.c("server/chunks/_0~~i2.6._.js")
 R.c("server/chunks/[root-of-the-server]__0j8-xkl._.js")
