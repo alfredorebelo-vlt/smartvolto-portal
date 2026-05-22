@@ -29,6 +29,7 @@ export const authConfig = {
         pathname.startsWith("/login") ||
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/api/restart") ||
+        pathname.startsWith("/api/debug/env") ||
         pathname.startsWith("/_next") ||
         pathname.startsWith("/brand") ||
         pathname === "/favicon.ico";
