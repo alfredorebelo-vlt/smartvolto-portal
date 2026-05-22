@@ -102,23 +102,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.email || trigger === "update") {
         const email = user?.email ?? token.email;
         if (email) {
-          const dbUser = await prisma.user.findUnique({
-            where: { email },
-            include: { role: true },
-          });
-          if (dbUser) {
-            token.id = dbUser.id;
-            // isAdmin é derivado da role: se a role se chama "Admin", tem acesso à administração
-            token.isAdmin = dbUser.role?.name === "Admin" || dbUser.isAdmin;
-            token.roleId = dbUser.roleId ?? null;
-            token.givenName = dbUser.givenName;
-            token.familyName = dbUser.familyName;
-            token.jobTitle = dbUser.jobTitle;
-            token.department = dbUser.department;
-            // Sections do role — admins de sistema têm wildcard
-            token.sections = dbUser.isAdmin
-              ? ["*"]
-              : (dbUser.role?.sections as string[] | null) ?? [];
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email },
+              include: { role: true },
+            });
+            if (dbUser) {
+              token.id = dbUser.id;
+              // isAdmin é derivado da role: se a role se chama "Admin", tem acesso à administração
+              token.isAdmin = dbUser.role?.name === "Admin" || dbUser.isAdmin;
+              token.roleId = dbUser.roleId ?? null;
+              token.givenName = dbUser.givenName;
+              token.familyName = dbUser.familyName;
+              token.jobTitle = dbUser.jobTitle;
+              token.department = dbUser.department;
+              // Sections do role — admins de sistema têm wildcard
+              token.sections = dbUser.isAdmin
+                ? ["*"]
+                : (dbUser.role?.sections as string[] | null) ?? [];
+            }
+          } catch (e) {
+            console.error("[jwt callback] DB error:", e);
           }
         }
       }
