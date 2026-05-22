@@ -17,15 +17,48 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar cliente Prisma
+        run: npx prisma generate
+        env:
+          DATABASE_URL: "mariadb://build:build@localhost:3306/build"
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          DATABASE_URL: "mariadb://build:build@localhost:3306/build"
+          AUTH_SECRET: "build-placeholder-secret-xxxxxxxxxxxxxxxxxxxxxxxx"
+          AUTH_TRUST_HOST: "true"
+          AUTH_GOOGLE_ID: "placeholder.apps.googleusercontent.com"
+          AUTH_GOOGLE_SECRET: "placeholder-secret"
+          NEXTAUTH_URL: "https://voltosmart.voltodrive.com"
+          NODE_ENV: "production"
+
       - name: Sincronizar main -> deploy (orphan commit)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          COMMIT_MSG=$(git log -1 --format='%s')
+
           # Cria um commit órfão no deploy (sem histórico) com o conteúdo actual
           # Isto mantém o branch deploy pequeno para o cPanel conseguir clonar
           git checkout --orphan deploy-new
           git add -A
-          git commit -m "deploy: $(git log -1 --format='%s' HEAD~0)"
+
+          # Inclui os ficheiros WASM do Prisma (runtime MySQL) que estão em .next/node_modules/
+          # Necessários para o servidor conseguir inicializar o PrismaClient em runtime
+          git add -f .next/node_modules/@prisma/client-*/package.json
+          git add -f .next/node_modules/@prisma/client-*/runtime/query_compiler_fast_bg.mysql.mjs
+          git add -f .next/node_modules/@prisma/client-*/runtime/query_compiler_fast_bg.mysql.wasm-base64.mjs
+
+          git commit -m "deploy: ${COMMIT_MSG}"
           git push origin deploy-new:deploy --force
-          git checkout main
