@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -14,8 +11,6 @@ jobs:
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -42,23 +37,39 @@ jobs:
           NEXTAUTH_URL: "https://voltosmart.voltodrive.com"
           NODE_ENV: "production"
 
-      - name: Sincronizar main -> deploy (orphan commit)
+      - name: Limpar .next/node_modules — manter só MySQL WASM
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          PRISMA_DIR=$(find .next/node_modules/@prisma -maxdepth 1 -type d -name "client-*" 2>/dev/null | head -1)
+          if [ -n "$PRISMA_DIR" ]; then
+            find "$PRISMA_DIR/runtime" -type f \
+              ! -name "query_compiler_fast_bg.mysql.mjs" \
+              ! -name "query_compiler_fast_bg.mysql.wasm-base64.mjs" \
+              -delete
+          fi
 
-          COMMIT_MSG=$(git log -1 --format='%s')
-
-          # Cria um commit órfão no deploy (sem histórico) com o conteúdo actual
-          # Isto mantém o branch deploy pequeno para o cPanel conseguir clonar
-          git checkout --orphan deploy-new
-          git add -A
-
-          # Inclui os ficheiros WASM do Prisma (runtime MySQL) que estão em .next/node_modules/
-          # Necessários para o servidor conseguir inicializar o PrismaClient em runtime
-          git add -f .next/node_modules/@prisma/client-*/package.json
-          git add -f .next/node_modules/@prisma/client-*/runtime/query_compiler_fast_bg.mysql.mjs
-          git add -f .next/node_modules/@prisma/client-*/runtime/query_compiler_fast_bg.mysql.wasm-base64.mjs
-
-          git commit -m "deploy: ${COMMIT_MSG}"
-          git push origin deploy-new:deploy --force
+      - name: Deploy via FTP para cPanel
+        uses: SamKirkland/FTP-Deploy-Action@4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          local-dir: "./"
+          exclude: |
+            **/.git*
+            **/.git*/**
+            node_modules/**
+            **/.env*
+            .next/cache/**
+            .next/dev/**
+            .next/trace
+            .next/trace-build
+            .next/diagnostics/**
+            .next/types/**
+            claude design/**
+            .claude/**
+            **/*.sql
+            **/*.log
+            **/*.tsbuildinfo
+            next-env.d.ts
+            coverage/**
