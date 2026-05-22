@@ -1,6 +1,6 @@
 {
-  "/_not-found/page": "/_not-found",
   "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
   "/api/admin/announcement-categories/[id]/route": "/api/admin/announcement-categories/[id]",
   "/api/admin/announcement-categories/route": "/api/admin/announcement-categories",
   "/api/admin/announcements/route": "/api/admin/announcements",
@@ -14,6 +14,7 @@
   "/api/admin/docs/areas/route": "/api/admin/docs/areas",
   "/api/admin/docs/entries/[id]/route": "/api/admin/docs/entries/[id]",
   "/api/admin/docs/entries/route": "/api/admin/docs/entries",
+  "/api/admin/manual/import-pdf/route": "/api/admin/manual/import-pdf",
   "/api/admin/roles/route": "/api/admin/roles",
   "/api/admin/seed-manual/route": "/api/admin/seed-manual",
   "/api/admin/settings/route": "/api/admin/settings",
@@ -26,6 +27,7 @@
   "/api/announcements/[id]/react/route": "/api/announcements/[id]/react",
   "/api/announcements/[id]/route": "/api/announcements/[id]",
   "/api/announcements/route": "/api/announcements",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
   "/api/auth/reauthorize/route": "/api/auth/reauthorize",
   "/api/calendar/events/route": "/api/calendar/events",
   "/api/dashboard/widgets/[id]/data/route": "/api/dashboard/widgets/[id]/data",
@@ -51,8 +53,6 @@
   "/api/tools/[slug]/data/route": "/api/tools/[slug]/data",
   "/api/tools/[slug]/route": "/api/tools/[slug]",
   "/api/tools/route": "/api/tools",
-  "/api/admin/manual/import-pdf/route": "/api/admin/manual/import-pdf",
-  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
   "/login/page": "/login",
   "/page": "/"
 }

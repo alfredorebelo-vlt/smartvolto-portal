@@ -1,0 +1,3 @@
+{
+  "/api/admin/manual/import-pdf/route": "app/api/admin/manual/import-pdf/route.js"
+}

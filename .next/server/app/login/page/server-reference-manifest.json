@@ -1,0 +1,17 @@
+{
+  "node": {
+    "4060c458b4d6a9cdcf419d6272141becf71910df54": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 22542,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "src/app/login/page.tsx"
+        }
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_0",
+      "filename": "src/app/login/page.tsx"
+    }
+  },
+  "edge": {}
+}
