@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+model User {
+  id                    String         @id @default(cuid())
+  email                 String         @unique
+  name                  String?
+  image                 String?
+  emailVerified         DateTime?
+  roleId                String?
+  role                  Role?          @relation(fields: [roleId], references: [id])
+
+  // Google Workspace Integration
+  googleUserId          String?        @unique
+  givenName             String?
+  familyName            String?
+  jobTitle              String?
+  department            String?
+  officeLocation        String?
+  orgUnitPath           String?
+  phoneNumber           String?
+  managerEmail          String?
+  startDate             DateTime?
+  dateOfBirth           DateTime?
+  isAdmin               Boolean        @default(false)
+  status                UserStatus     @default(ACTIVE)
+  lastSyncedAt          DateTime?
+
+  // Campos editáveis pelo utilizador
+  bio                   String?        @db.VarChar(300)
+  linkedinUrl           String?
+  workLocation          String?
+
+  accounts              Account[]
+  sessions              Session[]
+  announcements         Announcement[]
+  announcementReactions AnnouncementReaction[]
+  announcementComments  AnnouncementComment[]
+  manualVersions        ManualArticleVersion[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([googleUserId])
+  @@index([status])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  // JSON array de chaves de secção: ["dashboard.card.bc", "announcements.write", ...]
+  sections    Json
+  isSystem    Boolean  @default(false)
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AnnouncementCategory {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  color     String   // hex text color
+  bg        String   // hex background color
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id          String                @id @default(cuid())
+  title       String
+  content     String                @db.Text
+  category    String?               // milestone | launch | people | ops | tech
+  isPinned    Boolean               @default(false)
+  authorId    String
+  author      User                  @relation(fields: [authorId], references: [id])
+  publishedAt DateTime              @default(now())
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  // JSON array de roleIds — vazio = visível a todos os utilizadores autenticados
+  roleIds     Json                  @default("[]")
+  reactions   AnnouncementReaction[]
+  comments    AnnouncementComment[]
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([isPinned, publishedAt(sort: Desc)])
+}
+
+model AnnouncementReaction {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade, map: "fk_reaction_announcement")
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_reaction_user")
+  emoji          String
+  createdAt      DateTime     @default(now())
+
+  @@unique([announcementId, userId, emoji])
+  @@index([announcementId])
+}
+
+model AnnouncementComment {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade, map: "fk_comment_announcement")
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade, map: "fk_comment_author")
+  content        String       @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([announcementId, createdAt])
+}
+
+model ManualCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  color       String?
+  order       Int       @default(0)
+  articles    ManualArticle[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ManualArticle {
+  id               String                @id @default(cuid())
+  slug             String                @unique
+  categoryId       String
+  category         ManualCategory        @relation(fields: [categoryId], references: [id])
+  currentVersionId String?               @unique
+  currentVersion   ManualArticleVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions         ManualArticleVersion[] @relation("ArticleVersions")
+  order            Int                   @default(0)
+  archivedAt       DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  @@index([categoryId])
+  @@index([categoryId, order])
+}
+
+model ManualArticleVersion {
+  id           String         @id @default(cuid())
+  articleId    String
+  article      ManualArticle  @relation("ArticleVersions", fields: [articleId], references: [id], onDelete: Cascade)
+  title        String
+  content      String         @db.LongText
+  changeNote   String?        @db.VarChar(500)
+  authorId     String
+  author       User           @relation(fields: [authorId], references: [id])
+  createdAt    DateTime       @default(now())
+
+  currentOf    ManualArticle? @relation("CurrentVersion")
+
+  @@index([articleId, createdAt(sort: Desc)])
+}
+
+model ToolData {
+  id        String   @id @default(cuid())
+  toolId    String
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  key       String   @default("state") // permite múltiplos "buckets" por ferramenta
+  data      Json
+  updatedAt DateTime @updatedAt
+
+  @@unique([toolId, key])
+  @@index([toolId])
+}
+
+model Tool {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  content     String   @db.LongText  // HTML completo da ferramenta
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  // JSON array de roleIds — vazio = visível a todos os autenticados
+  roleIds     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dataRecords ToolData[]
+
+  @@index([isActive, order])
+}
+
+// Widget types: announcements | birthdays | calendar_events | quick_links | kpi_n8n | drive_recent | iframe_embed
+model DashboardWidget {
+  id          String   @id @default(cuid())
+  type        String   // widget type key
+  title       String
+  config      Json     // type-specific config (urls, limits, labels, etc.)
+  col         Int      @default(1)   // 1 = main (2/3), 2 = side (1/3)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  // JSON array of roleIds that can see this widget — empty = all authenticated users
+  roleIds     Json     @default("[]")
+  cacheTtl    Int      @default(300) // seconds
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, col, order])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userEmail  String?
+  userName   String?
+  action     String   // CREATE | UPDATE | DELETE | RESTORE
+  entity     String   // Article | ArticleVersion | User | Role | Announcement | ...
+  entityId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model DocArea {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  color       String     @default("#2e3c8f")
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  // JSON array de roleIds — vazio = visível a todos os autenticados
+  roleIds     Json       @default("[]")
+  entries     DocEntry[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([isActive, order])
+}
+
+model DocEntry {
+  id          String   @id @default(cuid())
+  areaId      String
+  area        DocArea  @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  driveFileId String?  // ID do ficheiro na Google Drive (para preview)
+  driveUrl    String   @db.VarChar(2048)
+  // none = só link | iframe = embed genérico | sheets | docs | slides
+  embedType   String   @default("none")
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  // JSON array de roleIds — vazio = herda da área
+  roleIds     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([areaId, isActive, order])
+}
+
+model SharedCalendar {
+  id        String   @id @default(cuid())
+  name      String
+  calendarId String  @unique
+  color     String   @default("#2e3c8f")
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, order])
+}
+
+// Tabelas exigidas pelo NextAuth Prisma Adapter
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

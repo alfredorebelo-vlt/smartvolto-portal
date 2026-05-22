@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD COLUMN `orgUnitPath` VARCHAR(191) NULL;
