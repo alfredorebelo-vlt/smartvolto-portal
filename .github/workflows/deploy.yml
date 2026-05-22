@@ -18,18 +18,9 @@ jobs:
           fetch-depth: 0
 
       - name: Sincronizar main -> deploy
-        env:
-          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git fetch origin deploy
-          git checkout -B deploy origin/deploy
-          git merge -X theirs main --no-edit
-
-          # Garantir que .env.production nunca fica commitado no deploy (para não conflituar com o ficheiro manual no servidor)
-          git rm --cached -f .env.production 2>/dev/null || true
-          git diff --staged --quiet || git commit -m "ci: ensure .env.production is never tracked in deploy branch"
-
-          git push origin deploy
+          # Aponta deploy para o mesmo commit que main (sem merge, sem conflitos)
+          git push origin HEAD:deploy --force
