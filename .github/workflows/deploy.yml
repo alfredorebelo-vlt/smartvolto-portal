@@ -17,10 +17,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sincronizar main -> deploy
+      - name: Sincronizar main -> deploy (orphan commit)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Aponta deploy para o mesmo commit que main (sem merge, sem conflitos)
-          git push origin HEAD:deploy --force
+          # Cria um commit órfão no deploy (sem histórico) com o conteúdo actual
+          # Isto mantém o branch deploy pequeno para o cPanel conseguir clonar
+          git checkout --orphan deploy-new
+          git add -A
+          git commit -m "deploy: $(git log -1 --format='%s' HEAD~0)"
+          git push origin deploy-new:deploy --force
+          git checkout main
