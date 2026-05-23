@@ -37,8 +37,12 @@ jobs:
           NEXTAUTH_URL: "https://voltosmart.voltodrive.com"
           NODE_ENV: "production"
 
-      - name: Limpar .next/node_modules — manter só MySQL WASM
+      - name: Preparar ficheiros para deploy
         run: |
+          # Remove node_modules — o servidor instala via npm (evita upload de centenas de MB)
+          rm -rf node_modules
+
+          # Mantém só os ficheiros WASM MySQL necessários em runtime
           PRISMA_DIR=$(find .next/node_modules/@prisma -maxdepth 1 -type d -name "client-*" 2>/dev/null | head -1)
           if [ -n "$PRISMA_DIR" ]; then
             find "$PRISMA_DIR/runtime" -type f \
@@ -47,29 +51,32 @@ jobs:
               -delete
           fi
 
+          # Remove cache e ficheiros desnecessários da build
+          rm -rf .next/cache .next/dev .next/diagnostics
+          rm -f .next/trace .next/trace-build
+
       - name: Deploy via FTP para cPanel
-        uses: SamKirkland/FTP-Deploy-Action@4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          local-dir: "./"
-          exclude: |
-            **/.git*
-            **/.git*/**
-            node_modules/**
-            **/.env*
-            .next/cache/**
-            .next/dev/**
-            .next/trace
-            .next/trace-build
-            .next/diagnostics/**
-            .next/types/**
-            claude design/**
-            .claude/**
-            **/*.sql
-            **/*.log
-            **/*.tsbuildinfo
-            next-env.d.ts
-            coverage/**
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.FTP_SERVER_DIR }}
+        run: |
+          sudo apt-get install -q -y lftp
+
+          cat > /tmp/deploy.lftp << LFTP
+          open -u "$FTP_USER,$FTP_PASS" ftp://$FTP_SERVER
+          set ftp:ssl-allow yes
+          set ssl:verify-certificate no
+          mirror -R --parallel=4 \
+            --exclude-glob .git/ \
+            --exclude-glob .claude/ \
+            --exclude-glob .env \
+            --exclude-glob .env.* \
+            --exclude-glob *.sql \
+            --exclude-glob *.log \
+            . $FTP_DIR
+          bye
+          LFTP
+
+          lftp -f /tmp/deploy.lftp
