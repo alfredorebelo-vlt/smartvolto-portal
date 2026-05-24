@@ -19,8 +19,7 @@ if (fs.existsSync(envFile)) {
       if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
         val = val.slice(1, -1);
       }
-      // Não sobrescreve variáveis já definidas no ambiente
-      if (!process.env[key]) process.env[key] = val;
+      process.env[key] = val;
     });
 }
 

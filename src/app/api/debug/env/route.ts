@@ -83,6 +83,6 @@ export async function GET() {
     db: { status: dbTest, userCount },
     mysql2: mysql2Test,
     timestamp: new Date().toISOString(),
-    codeVersion: "url-expose-2",
+    codeVersion: "server-override-3",
   });
 }
