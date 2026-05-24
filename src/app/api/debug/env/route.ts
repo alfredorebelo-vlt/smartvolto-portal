@@ -23,12 +23,13 @@ export async function GET() {
     if (!val) {
       status[v] = "MISSING";
     } else if (v === "DATABASE_URL") {
-      // Mostra user@host/db sem a password
       const match = val.match(/mysql:\/\/([^:]+):[^@]+@([^/]+)(\/\S+)?/);
       if (match) {
         status[v] = `mysql://${match[1]}@${match[2]}${match[3] ?? ""}`;
       } else {
-        status[v] = `SET (${val.length} chars)`;
+        // Mostra primeiros 12 chars reais para diagnóstico de formato
+        const preview = JSON.stringify(val.slice(0, 15));
+        status[v] = `NO-MATCH (${val.length} chars) prefix=${preview}`;
       }
     } else if (v.includes("SECRET") || v.includes("KEY")) {
       status[v] = `SET (${val.length} chars)`;
@@ -82,6 +83,6 @@ export async function GET() {
     db: { status: dbTest, userCount },
     mysql2: mysql2Test,
     timestamp: new Date().toISOString(),
-    codeVersion: "mysql2-debug-3a23ebe",
+    codeVersion: "format-check-1",
   });
 }
