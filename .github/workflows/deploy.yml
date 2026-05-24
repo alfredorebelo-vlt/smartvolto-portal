@@ -39,16 +39,23 @@ jobs:
 
       - name: Preparar ficheiros para deploy
         run: |
-          # Remove node_modules — o servidor instala via npm (evita upload de centenas de MB)
-          rm -rf node_modules
-
-          # Mantém só os ficheiros WASM MySQL necessários em runtime
+          # Guarda os ficheiros WASM necessários antes de limpar .next/node_modules
           PRISMA_DIR=$(find .next/node_modules/@prisma -maxdepth 1 -type d -name "client-*" 2>/dev/null | head -1)
           if [ -n "$PRISMA_DIR" ]; then
-            find "$PRISMA_DIR/runtime" -type f \
-              ! -name "query_compiler_fast_bg.mysql.mjs" \
-              ! -name "query_compiler_fast_bg.mysql.wasm-base64.mjs" \
-              -delete
+            PRISMA_HASH=$(basename "$PRISMA_DIR")
+            mkdir -p /tmp/prisma-wasm/runtime
+            cp "$PRISMA_DIR/package.json" /tmp/prisma-wasm/
+            cp "$PRISMA_DIR/runtime/query_compiler_fast_bg.mysql.mjs" /tmp/prisma-wasm/runtime/
+            cp "$PRISMA_DIR/runtime/query_compiler_fast_bg.mysql.wasm-base64.mjs" /tmp/prisma-wasm/runtime/
+
+            # Remove .next/node_modules por completo (tem symlinks que o FTP cPanel não suporta)
+            rm -rf .next/node_modules
+
+            # Recria sem symlinks — só os 3 ficheiros necessários em runtime
+            mkdir -p ".next/node_modules/@prisma/$PRISMA_HASH/runtime"
+            cp /tmp/prisma-wasm/package.json ".next/node_modules/@prisma/$PRISMA_HASH/"
+            cp /tmp/prisma-wasm/runtime/query_compiler_fast_bg.mysql.mjs ".next/node_modules/@prisma/$PRISMA_HASH/runtime/"
+            cp /tmp/prisma-wasm/runtime/query_compiler_fast_bg.mysql.wasm-base64.mjs ".next/node_modules/@prisma/$PRISMA_HASH/runtime/"
           fi
 
           # Remove cache e ficheiros desnecessários da build
@@ -64,17 +71,20 @@ jobs:
         run: |
           sudo apt-get install -q -y lftp
 
+          # Regex ancorado ao início: exclui node_modules/ raiz mas NÃO .next/node_modules/
+          # --dereference: converte qualquer symlink restante em ficheiro real
           cat > /tmp/deploy.lftp << LFTP
           open -u "$FTP_USER,$FTP_PASS" ftp://$FTP_SERVER
           set ftp:ssl-allow yes
           set ssl:verify-certificate no
+          set mirror:dereference yes
           mirror -R --parallel=4 \
-            --exclude-glob .git/ \
-            --exclude-glob .claude/ \
-            --exclude-glob .env \
-            --exclude-glob .env.* \
-            --exclude-glob *.sql \
-            --exclude-glob *.log \
+            --exclude '^node_modules($|/)' \
+            --exclude '^\.git($|/)' \
+            --exclude '^\.claude($|/)' \
+            --exclude '\.env($|\.)' \
+            --exclude '\.sql$' \
+            --exclude '\.log$' \
             . $FTP_DIR
           bye
           LFTP
