@@ -96,7 +96,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user, trigger }) {
-      if (user?.email || trigger === "update") {
+      if (user || trigger === "update") {
         const email = user?.email ?? token.email;
         if (email) {
           try {
