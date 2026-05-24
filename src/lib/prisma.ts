@@ -12,7 +12,26 @@ function getDbUrl(): string {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaMariaDb(getDbUrl());
+  const socketPath = process.env.MARIADB_SOCKET_PATH;
+
+  let adapter: InstanceType<typeof PrismaMariaDb>;
+
+  if (socketPath) {
+    // cPanel shared hosting: MariaDB only accepts Unix socket connections.
+    // Parse DATABASE_URL to extract credentials and connect via socket instead of TCP.
+    const url = getDbUrl();
+    const match = url.match(/mariadb:\/\/([^:]+):([^@]+)@[^/]+\/([^?]+)/);
+    if (match) {
+      const [, user, password, database] = match;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      adapter = new PrismaMariaDb({ socketPath, user, password, database } as any);
+    } else {
+      adapter = new PrismaMariaDb(url);
+    }
+  } else {
+    adapter = new PrismaMariaDb(getDbUrl());
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new PrismaClient({ adapter } as any);
 }
