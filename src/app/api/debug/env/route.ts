@@ -23,13 +23,13 @@ export async function GET() {
     if (!val) {
       status[v] = "MISSING";
     } else if (v === "DATABASE_URL") {
-      const match = val.match(/mysql:\/\/([^:]+):[^@]+@([^/]+)(\/\S+)?/);
+      // Mostra o prefixo real para diagnóstico — nunca expõe a password
+      const preview = JSON.stringify(val.slice(0, 25));
+      const match = val.match(/^(mysql|mariadb):\/\/([^:]+):[^@]+@([^/]+)(\/[^?]+)?/);
       if (match) {
-        status[v] = `mysql://${match[1]}@${match[2]}${match[3] ?? ""}`;
+        status[v] = `${match[1]}://${match[2]}@${match[3]}${match[4] ?? ""} (${val.length} chars)`;
       } else {
-        // Mostra primeiros 12 chars reais para diagnóstico de formato
-        const preview = JSON.stringify(val.slice(0, 15));
-        status[v] = `NO-MATCH (${val.length} chars) prefix=${preview}`;
+        status[v] = `NO-MATCH prefix=${preview} (${val.length} chars)`;
       }
     } else if (v.includes("SECRET") || v.includes("KEY")) {
       status[v] = `SET (${val.length} chars)`;
@@ -83,6 +83,6 @@ export async function GET() {
     db: { status: dbTest, userCount },
     mysql2: mysql2Test,
     timestamp: new Date().toISOString(),
-    codeVersion: "format-check-1",
+    codeVersion: "url-expose-2",
   });
 }
