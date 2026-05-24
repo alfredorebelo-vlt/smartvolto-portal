@@ -13,6 +13,7 @@ export async function GET() {
     "DATABASE_URL",
     "NEXTAUTH_URL",
     "NODE_ENV",
+    "MARIADB_SOCKET_PATH",
   ];
 
   const status: Record<string, string> = {};
@@ -49,5 +50,6 @@ export async function GET() {
     env: status,
     db: { status: dbTest, userCount },
     timestamp: new Date().toISOString(),
+    codeVersion: "socket-fix-29a5298",
   });
 }
