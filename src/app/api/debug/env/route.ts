@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import mysql2 from "mysql2/promise";
 
 // Endpoint temporário de diagnóstico — remover após resolver o problema de deploy
 export async function GET() {
@@ -36,20 +37,51 @@ export async function GET() {
     }
   }
 
-  // Teste de ligação à BD
+  // Teste Prisma
   let dbTest: string;
   let userCount: number | null = null;
   try {
     userCount = await prisma.user.count();
     dbTest = "OK";
   } catch (e: unknown) {
-    dbTest = e instanceof Error ? e.message : String(e);
+    // Captura a cadeia completa de erros para diagnóstico
+    const msgs: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let cur: any = e;
+    while (cur && msgs.length < 4) {
+      msgs.push(cur instanceof Error ? cur.message : String(cur));
+      cur = cur?.cause;
+    }
+    dbTest = msgs.join(" → ");
+  }
+
+  // Teste direto mysql2 — bypass do Prisma para isolar o problema
+  let mysql2Test: string;
+  try {
+    const rawUrl = process.env.DATABASE_URL ?? "";
+    const m = rawUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:/]+)(?::(\d+))?\/([^?]+)/);
+    if (!m) throw new Error("DATABASE_URL inválido");
+    const [, user, password, host, port, database] = m;
+    const socketPath = process.env.MARIADB_SOCKET_PATH;
+    const conn = await mysql2.createConnection({
+      ...(socketPath ? { socketPath } : { host, port: Number(port ?? 3306) }),
+      user,
+      password,
+      database,
+      connectTimeout: 8000,
+    });
+    const [rows] = await conn.query("SELECT 1 AS ok");
+    mysql2Test = `OK → ${JSON.stringify(rows)}`;
+    await conn.end();
+  } catch (e: unknown) {
+    mysql2Test = e instanceof Error ? `${e.message} (code: ${(e as NodeJS.ErrnoException).code})` : String(e);
   }
 
   return NextResponse.json({
     env: status,
     db: { status: dbTest, userCount },
+    mysql2: mysql2Test,
     timestamp: new Date().toISOString(),
-    codeVersion: "socket-fix-29a5298",
+    codeVersion: "mysql2-debug-3a23ebe",
   });
 }
