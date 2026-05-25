@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import mysql2 from "mysql2/promise";
+import { auth } from "@/auth";
 
 // Endpoint temporário de diagnóstico — remover após resolver o problema de deploy
 export async function GET() {
@@ -23,13 +24,11 @@ export async function GET() {
     if (!val) {
       status[v] = "MISSING";
     } else if (v === "DATABASE_URL") {
-      // Mostra o prefixo real para diagnóstico — nunca expõe a password
-      const preview = JSON.stringify(val.slice(0, 25));
       const match = val.match(/^(mysql|mariadb):\/\/([^:]+):[^@]+@([^/]+)(\/[^?]+)?/);
       if (match) {
         status[v] = `${match[1]}://${match[2]}@${match[3]}${match[4] ?? ""} (${val.length} chars)`;
       } else {
-        status[v] = `NO-MATCH prefix=${preview} (${val.length} chars)`;
+        status[v] = `NO-MATCH prefix=${JSON.stringify(val.slice(0, 25))} (${val.length} chars)`;
       }
     } else if (v.includes("SECRET") || v.includes("KEY")) {
       status[v] = `SET (${val.length} chars)`;
@@ -45,7 +44,6 @@ export async function GET() {
     userCount = await prisma.user.count();
     dbTest = "OK";
   } catch (e: unknown) {
-    // Captura a cadeia completa de erros para diagnóstico
     const msgs: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let cur: any = e;
@@ -56,7 +54,7 @@ export async function GET() {
     dbTest = msgs.join(" → ");
   }
 
-  // Teste direto mysql2 — bypass do Prisma para isolar o problema
+  // Teste direto mysql2
   let mysql2Test: string;
   try {
     const rawUrl = process.env.DATABASE_URL ?? "";
@@ -78,11 +76,39 @@ export async function GET() {
     mysql2Test = e instanceof Error ? `${e.message} (code: ${(e as NodeJS.ErrnoException).code})` : String(e);
   }
 
+  // Diagnóstico da sessão JWT
+  let sessionInfo: Record<string, unknown> = { status: "not-logged-in" };
+  let dbUserInfo: Record<string, unknown> | null = null;
+  try {
+    const session = await auth();
+    if (session?.user) {
+      const u = session.user as Record<string, unknown>;
+      sessionInfo = {
+        email: u.email,
+        isAdmin: u.isAdmin,
+        id: u.id,
+        sections: u.sections,
+      };
+      const email = u.email as string | undefined;
+      if (email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, email: true, isAdmin: true, roleId: true },
+        });
+        dbUserInfo = dbUser;
+      }
+    }
+  } catch (e) {
+    sessionInfo = { error: String(e) };
+  }
+
   return NextResponse.json({
     env: status,
     db: { status: dbTest, userCount },
     mysql2: mysql2Test,
+    session: sessionInfo,
+    dbUser: dbUserInfo,
     timestamp: new Date().toISOString(),
-    codeVersion: "server-override-3",
+    codeVersion: "session-diag-4",
   });
 }
