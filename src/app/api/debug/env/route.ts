@@ -82,7 +82,7 @@ export async function GET() {
   try {
     const session = await auth();
     if (session?.user) {
-      const u = session.user as Record<string, unknown>;
+      const u = session.user as unknown as Record<string, unknown>;
       sessionInfo = {
         email: u.email,
         isAdmin: u.isAdmin,
