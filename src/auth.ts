@@ -96,6 +96,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user, trigger }) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (token as any)._jwtDebug = { trigger, hasUser: !!user, userEmail: user?.email ?? null, tokenEmail: token.email ?? null, tokenId: token.id ?? null };
       if (user || trigger === "update" || !token.id) {
         const email = user?.email ?? token.email;
         if (email) {
@@ -106,19 +108,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             });
             if (dbUser) {
               token.id = dbUser.id;
-              // isAdmin é derivado da role: se a role se chama "Admin", tem acesso à administração
               token.isAdmin = dbUser.role?.name === "Admin" || dbUser.isAdmin;
               token.roleId = dbUser.roleId ?? null;
               token.givenName = dbUser.givenName;
               token.familyName = dbUser.familyName;
               token.jobTitle = dbUser.jobTitle;
               token.department = dbUser.department;
-              // Sections do role — admins de sistema têm wildcard
               token.sections = dbUser.isAdmin
                 ? ["*"]
                 : (dbUser.role?.sections as string[] | null) ?? [];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (token as any)._jwtDebug.dbFound = true;
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (token as any)._jwtDebug.dbFound = false;
             }
           } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (token as any)._jwtDebug.error = String(e);
             console.error("[jwt callback] DB error:", e);
           }
         }
@@ -137,6 +144,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         u.jobTitle   = (token.jobTitle as string | null) ?? null;
         u.department = (token.department as string | null) ?? null;
         u.sections   = (token.sections as string[]) ?? [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        u._jwtDebug  = (token as any)._jwtDebug;
       }
       return session;
     },

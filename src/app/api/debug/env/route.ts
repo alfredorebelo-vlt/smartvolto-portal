@@ -88,6 +88,7 @@ export async function GET() {
         isAdmin: u.isAdmin,
         id: u.id,
         sections: u.sections,
+        _jwtDebug: u._jwtDebug,
       };
       const email = u.email as string | undefined;
       if (email) {
@@ -109,6 +110,6 @@ export async function GET() {
     session: sessionInfo,
     dbUser: dbUserInfo,
     timestamp: new Date().toISOString(),
-    codeVersion: "session-diag-4",
+    codeVersion: "jwt-debug-5",
   });
 }
