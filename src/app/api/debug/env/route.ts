@@ -110,6 +110,6 @@ export async function GET() {
     session: sessionInfo,
     dbUser: dbUserInfo,
     timestamp: new Date().toISOString(),
-    codeVersion: "jwt-debug-5",
+    codeVersion: "session-db-6",
   });
 }

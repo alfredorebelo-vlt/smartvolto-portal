@@ -95,47 +95,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user, trigger }) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (token as any)._jwtDebug = { trigger, hasUser: !!user, userEmail: user?.email ?? null, tokenEmail: token.email ?? null, tokenId: token.id ?? null };
-      if (user || trigger === "update" || !token.id) {
-        const email = user?.email ?? token.email;
-        if (email) {
-          try {
-            const dbUser = await prisma.user.findUnique({
-              where: { email },
-              include: { role: true },
-            });
-            if (dbUser) {
-              token.id = dbUser.id;
-              token.isAdmin = dbUser.role?.name === "Admin" || dbUser.isAdmin;
-              token.roleId = dbUser.roleId ?? null;
-              token.givenName = dbUser.givenName;
-              token.familyName = dbUser.familyName;
-              token.jobTitle = dbUser.jobTitle;
-              token.department = dbUser.department;
-              token.sections = dbUser.isAdmin
-                ? ["*"]
-                : (dbUser.role?.sections as string[] | null) ?? [];
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (token as any)._jwtDebug.dbFound = true;
-            } else {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (token as any)._jwtDebug.dbFound = false;
-            }
-          } catch (e) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (token as any)._jwtDebug.error = String(e);
-            console.error("[jwt callback] DB error:", e);
-          }
-        }
-      }
+    async jwt({ token }) {
       return token;
     },
     async session({ session, token }) {
       if (session.user && token) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const u = session.user as any;
+        const email = (token.email as string | null) ?? u.email;
+        if (email) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email },
+              select: {
+                id: true, isAdmin: true, roleId: true,
+                givenName: true, familyName: true, jobTitle: true, department: true,
+                role: { select: { name: true, sections: true } },
+              },
+            });
+            if (dbUser) {
+              u.id         = dbUser.id;
+              u.isAdmin    = dbUser.role?.name === "Admin" || dbUser.isAdmin;
+              u.roleId     = dbUser.roleId ?? null;
+              u.givenName  = dbUser.givenName;
+              u.familyName = dbUser.familyName;
+              u.jobTitle   = dbUser.jobTitle;
+              u.department = dbUser.department;
+              u.sections   = dbUser.isAdmin
+                ? ["*"]
+                : (dbUser.role?.sections as string[] | null) ?? [];
+              return session;
+            }
+          } catch (e) {
+            console.error("[session callback] DB error:", e);
+          }
+        }
+        // fallback se DB falhar
         u.id         = (token.id as string) ?? (token.sub as string);
         u.isAdmin    = (token.isAdmin as boolean) ?? false;
         u.roleId     = (token.roleId as string | null) ?? null;
@@ -144,8 +139,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         u.jobTitle   = (token.jobTitle as string | null) ?? null;
         u.department = (token.department as string | null) ?? null;
         u.sections   = (token.sections as string[]) ?? [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        u._jwtDebug  = (token as any)._jwtDebug;
       }
       return session;
     },
