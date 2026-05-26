@@ -118,10 +118,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ files, folderName, folderParents });
   } catch (err) {
+    if (isAuthError(err)) return NextResponse.json({ files: [], error: "drive_auth_required" });
     const msg = err instanceof Error ? err.message : String(err);
-    if (isAuthError(msg)) {
-      return NextResponse.json({ files: [], error: "drive_auth_required" });
-    }
     return NextResponse.json({ files: [], error: msg });
   }
 }

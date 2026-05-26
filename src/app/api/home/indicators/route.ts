@@ -123,5 +123,6 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ ...results, needsReauth: false });
+  const allFailed = Object.keys(results).length > 0 && Object.values(results).every((v) => v === null);
+  return NextResponse.json({ ...results, needsReauth: allFailed });
 }

@@ -54,7 +54,13 @@ export async function getGoogleOAuth2(userId: string): Promise<{
   return { oauth2, account };
 }
 
-export function isAuthError(msg: string) {
+export function isAuthError(err: unknown): boolean {
+  // GaxiosError from googleapis: check HTTP status
+  const status = (err as { status?: number })?.status
+    ?? (err as { response?: { status?: number } })?.response?.status;
+  if (status === 401 || status === 403) return true;
+
+  const msg = err instanceof Error ? err.message : String(err);
   return [
     "invalid_grant",
     "insufficientPermissions",
@@ -62,5 +68,8 @@ export function isAuthError(msg: string) {
     "Request had insufficient",
     "Token has been expired",
     "token expired",
+    "invalid_credentials",
+    "UNAUTHENTICATED",
+    "caller does not have permission",
   ].some((s) => msg.toLowerCase().includes(s.toLowerCase()));
 }

@@ -71,8 +71,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ tasks: allTasks.slice(0, maxTasks) });
   } catch (err) {
+    if (isAuthError(err)) return NextResponse.json({ error: "tasks_scope_missing" });
     const msg = err instanceof Error ? err.message : String(err);
-    if (isAuthError(msg)) return NextResponse.json({ error: "tasks_scope_missing" });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
