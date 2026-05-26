@@ -5,9 +5,23 @@ export type VersionEntry = {
   changes: string[];
 };
 
-export const CURRENT_VERSION = "1.3";
+export const CURRENT_VERSION = "1.4";
 
 export const CHANGELOG: VersionEntry[] = [
+  {
+    version: "1.4",
+    date: "2026-05-26",
+    description: "Deploy em produção — portal estável para lançamento aos colaboradores",
+    changes: [
+      "Deploy completo em produção (voltosmart.voltodrive.com) com MariaDB via socket cPanel",
+      "Autenticação Google e acesso Admin totalmente funcionais",
+      "Widgets Google (Calendário, Drive, Gmail, Tasks) com renovação de sessão automática",
+      "Sincronização Google Workspace operacional",
+      "Limpeza de código: remoção de ficheiros de debug, mocks e backups obsoletos",
+      "CLAUDE.md adicionado para facilitar evolução futura do projeto",
+      "Deploy manual disponível via GitHub Actions (workflow_dispatch)",
+    ],
+  },
   {
     version: "1.3",
     date: "2026-05-17",
